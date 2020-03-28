@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+	
+	<changeSet author="correcats" id="bo-users-04" context="dev" labels="bo-users">
+		<loadData tableName="BO_CODIS_POSTALS" file="db/data/codis_postals.csv">
+            <column name="CODI_POSTAL" type="STRING" />
+            <column name="MUNICIPI" type="STRING" />
+        </loadData>
+	</changeSet>
+</databaseChangeLog>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+                      
+	<changeSet author="correcats" id="bo-users-01" context="dev" labels="bo-users">
+		<createTable tableName="BO_ASSOCIAT" remarks="Associats/des">
+			<column name="ID_SOCI" type="INT" autoIncrement="true">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+			<column name="NOM" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="COGNOMS" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="NICK" type="VARCHAR(32)">
+				<constraints nullable="false" unique="true" />
+			</column>
+			<column name="EMAIL" type="VARCHAR(100)">
+				<constraints nullable="false" unique="true" />
+			</column>
+			<column name="NIF" type="VARCHAR(32)">
+				<constraints nullable="true" />
+			</column>
+			<column name="IBAN" type="VARCHAR(32)">
+				<constraints nullable="true" />
+			</column>
+			<column name="TELEFON" type="VARCHAR(32)">
+				<constraints nullable="true" />
+			</column>
+			<column name="ADRECA" type="VARCHAR(255)">
+				<constraints nullable="true" />
+			</column>
+			<column name="CODI_POSTAL" type="VARCHAR(32)">
+				<constraints nullable="true" />
+			</column>
+			<column name="POBLACIO" type="VARCHAR(255)">
+				<constraints nullable="true" />
+			</column>
+			<column name="ACTIVAT" type="BOOLEAN" defaultValue="TRUE">
+				<constraints nullable="false" />
+			</column>
+			<column name="QUOTA_ALTA" type="NUMBER">
+				<constraints nullable="true" />
+			</column>
+			<column name="DATA_ALTA" type="DATE">
+				<constraints nullable="true" />
+			</column>
+			<column name="DATA_BAIXA" type="DATE">
+				<constraints nullable="true" />
+			</column>
+			<column name="OBSERVACIONS" type="VARCHAR(1024)">
+				<constraints nullable="true" />
+			</column>		
+		</createTable>
+	</changeSet>
+	
+</databaseChangeLog> 
