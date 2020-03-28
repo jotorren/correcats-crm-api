@@ -1,0 +1,48 @@
+logging:
+  level:
+    root: INFO
+    
+spring:
+  liquibase: 
+    change-log: classpath:db/liquibase-changelog.xml
+  jta:
+    enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    generate-ddl: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'  
+---
+
+spring:
+  profiles: pro
+
+server:
+  port: 8090
+
+---
+
+spring:
+  profiles: pre
+
+server:
+  port: 8090
+    
+---
+
+spring:
+  profiles: loc
+
+server:
+  port: 8290

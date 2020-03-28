@@ -43,8 +43,11 @@ testem.log
 package-lock.json
 /typings
 /transaction-logs
-tmlog74.log
 ENVIRONMENT.txt
+*.lck
+*.log
+*.csv
+*.jks
 
 # System Files
 .DS_Store
