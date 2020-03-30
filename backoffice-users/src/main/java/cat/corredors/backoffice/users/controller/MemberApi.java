@@ -1,9 +1,12 @@
 package cat.corredors.backoffice.users.controller;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.validation.constraints.NotNull;
 
+import org.springframework.data.util.Pair;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -63,6 +66,26 @@ public interface MemberApi {
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<Boolean>> isEmailOk(
     		@NotNull String email) throws MemberEmailAlreadyExistsException;
+	
+	@GetMapping(
+			value = "/consistency", 
+			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<ResponseData<List<String>>> checkConsistency(
+    		@NotNull String nick,
+    		@NotNull String email) throws BOUserNotFoundException;
+
+	@GetMapping(
+			value = "/consistency/nicks", 
+			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<ResponseData<Map<String, Pair<String, String>>>> listInconsistentNicks();
+
+	@GetMapping(
+			value = "/consistency/emails", 
+			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<ResponseData<Map<String, Pair<String, String>>>> listInconsistentEmails();
 	
 	@PutMapping(
 			value = "/{memberId}", 

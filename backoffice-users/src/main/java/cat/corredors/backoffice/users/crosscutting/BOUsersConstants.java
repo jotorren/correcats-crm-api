@@ -32,6 +32,8 @@ public interface BOUsersConstants {
 			int ERR_015 = 5015;
 			int ERR_016 = 5016;
 			int ERR_017 = 5017;
+			int ERR_018 = 5018;
+			int ERR_019 = 5019;
 			
 			int ERR_501 = 5501;
 			int ERR_502 = 5502;

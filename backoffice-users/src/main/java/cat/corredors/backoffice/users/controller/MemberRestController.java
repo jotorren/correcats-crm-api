@@ -1,10 +1,13 @@
 package cat.corredors.backoffice.users.controller;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.util.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -65,6 +68,25 @@ public class MemberRestController implements MemberApi {
 	public ResponseEntity<ResponseData<Boolean>> isEmailOk(@RequestParam String email) throws MemberEmailAlreadyExistsException {
 		return ResponseEntity.ok(new ResponseData<Boolean>(BOUsersConstants.REST.InfoCodes.INF_001,
 				service.isEmailAvailable(email)));
+	}
+
+	@Override
+	public ResponseEntity<ResponseData<List<String>>> checkConsistency(@RequestParam String nick, @RequestParam String email)
+			throws BOUserNotFoundException {
+		return ResponseEntity.ok(new ResponseData<List<String>>(BOUsersConstants.REST.InfoCodes.INF_001,
+				service.checkConsistency(nick, email)));
+	}
+
+	@Override
+	public ResponseEntity<ResponseData<Map<String, Pair<String, String>>>> listInconsistentNicks() {		
+		return ResponseEntity.ok(new ResponseData<Map<String, Pair<String, String>>>(BOUsersConstants.REST.InfoCodes.INF_001,
+				service.findInconsistentNicks()));
+	}
+
+	@Override
+	public ResponseEntity<ResponseData<Map<String, Pair<String, String>>>> listInconsistentEmails() {
+		return ResponseEntity.ok(new ResponseData<Map<String, Pair<String, String>>>(BOUsersConstants.REST.InfoCodes.INF_001,
+				service.findInconsistentEmails()));
 	}
 	
 	@Override

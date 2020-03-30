@@ -1,34 +1,34 @@
 package cat.corredors.backoffice.users.service;
 
+import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_CHECK_EMAIL;
+import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_CHECK_NICK;
 import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_CREATE_MEMBER;
 import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_DELETE_MEMBER;
 import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_FIND_MEMBER;
 import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_LIST_MEMBERS;
 import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_REGISTER_MEMBER;
 import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_UNREGISTER_MEMBER;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_CHECK_NICK;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_CHECK_EMAIL;
+import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.REST.ErrorCodes.ERR_018;
+import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.REST.ErrorCodes.PREFIX;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.MessageSource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCallback;
-import org.springframework.jdbc.core.PreparedStatementSetter;
-import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import cat.corredors.backoffice.users.crosscutting.BOUserNotFoundException;
@@ -44,6 +44,7 @@ import cat.corredors.backoffice.users.domain.AssociadaForm;
 import cat.corredors.backoffice.users.domain.AssociadaListItem;
 import cat.corredors.backoffice.users.repository.AssociadaRepository;
 import cat.corredors.backoffice.users.repository.AssociadaSpecificationsBuilder;
+import cat.corredors.backoffice.users.repository.JoomlaRepository;
 import cat.corredors.backoffice.users.repository.SearchOperation;
 import cat.corredors.backoffice.users.repository.SpecSearchCriteria;
 import lombok.RequiredArgsConstructor;
@@ -55,8 +56,9 @@ import lombok.extern.slf4j.Slf4j;
 public class MemberService {
 
 	private final AssociadaRepository repository;
-	private final @Qualifier("joomlaJdbcTemplate") JdbcTemplate joomlaRepository;
-
+	private final JoomlaRepository joomlaRepository;
+	private final MessageSource messageSource;
+	
 	public Page<Object> findAll(int offset, int limit, Optional<String> search, Optional<String> sortBy, boolean asc) {
 		try {
 			int page = offset/limit;
@@ -103,7 +105,7 @@ public class MemberService {
 				throw new MemberNickAlreadyExistsException(nick);
 			}
 
-			if (null == getJoomlaUserId(nick)) {
+			if (null == joomlaRepository.getJoomlaUserId(nick)) {
 				throw new BOUserNotFoundException(nick);
 			}
 			
@@ -127,61 +129,21 @@ public class MemberService {
 					String.format("System error looking for email %s", email), e, ERR_CHECK_EMAIL, e.getMessage());
 		}
 	}
-	
-	private Integer getJoomlaUserId(String nick) {
-		return joomlaRepository.query("SELECT id FROM e8yu3_users where name=?",
-				new PreparedStatementSetter() {
-					public void setValues(PreparedStatement preparedStatement) throws SQLException {
-						preparedStatement.setString(1, nick);
-					}
-				}, new ResultSetExtractor<Integer>() {
-					public Integer extractData(ResultSet resultSet) throws SQLException, DataAccessException {
-						if (resultSet.next()) {
-							return resultSet.getInt(1);
-						}
-						return null;
-					}
-				});
-	}
-	
-	private Integer updateJoomlaUser(String query, Integer joomlaUserId) {
-		joomlaRepository.execute(query,
-				new PreparedStatementCallback<Boolean>() {
-					@Override
-					public Boolean doInPreparedStatement(PreparedStatement ps)
-							throws SQLException, DataAccessException {
 
-						ps.setInt(1, joomlaUserId);
-						return ps.execute();
-
-					}
-				});
-		return joomlaUserId;
-	}
-
-	private Optional<Integer> registerJoomlaUser(String nick) throws BOUserNotFoundException {
-		return Optional.ofNullable(getJoomlaUserId(nick))
-				.map(joomlaUserId -> updateJoomlaUser(
-						"INSERT INTO e8yu3_user_usergroup_map(user_id, group_id) VALUES (?, 10)", joomlaUserId))
-				.map(joomlaUserId -> updateJoomlaUser(
-						"UPDATE e8yu3_kunena_users SET group_id = 10 WHERE userid = ?", joomlaUserId))
-				.map(joomlaUserId -> updateJoomlaUser(
-						"INSERT INTO e8yu3_acymailing_listsub(listid,subid,subdate,unsubdate,status) " + 
-								"SELECT 2,subid,UNIX_TIMESTAMP(),null,1 FROM e8yu3_acymailing_subscriber WHERE userid = ?", joomlaUserId))
-				;
-	}
-
-	private Optional<Integer> unregisterJoomlaUser(String nick) throws BOUserNotFoundException {
-		return Optional.ofNullable(getJoomlaUserId(nick))
-				.map(joomlaUserId -> updateJoomlaUser(
-						"DELETE FROM e8yu3_user_usergroup_map WHERE group_id = 10 AND user_id = ?", joomlaUserId))
-				.map(joomlaUserId -> updateJoomlaUser(
-						"UPDATE e8yu3_kunena_users SET group_id = 1 WHERE userid = ?", joomlaUserId))
-				.map(joomlaUserId -> updateJoomlaUser(
-						"DELETE FROM e8yu3_acymailing_listsub " +
-//						"UPDATE e8yu3_acymailing_listsub SET unsubdate = UNIX_TIMESTAMP(), status = -1 " + 
-								"WHERE listid = 2 AND subid IN (SELECT subid FROM e8yu3_acymailing_subscriber WHERE userid = ?)", joomlaUserId))
-				;		
+	public List<String> checkConsistency(String nick, String email) throws BOUserNotFoundException {
+		
+		List<String> failed = new ArrayList<String>();
+				
+		joomlaRepository.getJoomlaEmail(nick).map(joomlaEmail -> {
+			if (!email.equalsIgnoreCase(joomlaEmail)) {
+				failed.add(messageSource.getMessage(PREFIX + ERR_018, new Object[] { nick, joomlaEmail }, Locale.getDefault()));
+			}
+			
+			return joomlaEmail;
+		})
+		.orElseThrow(() -> new BOUserNotFoundException(nick));
+		
+		return failed;
 	}
 	
 	@Transactional
@@ -193,7 +155,7 @@ public class MemberService {
 				throw new MemberAlreadyRegisteredException(member.getNick());
 			}
 			
-			return registerJoomlaUser(member.getNick())
+			return joomlaRepository.registerJoomlaUser(member.getNick())
 					.map(joomlaUserId -> {
 						member.setActivat(Boolean.TRUE);
 						member.setDataBaixa(null);
@@ -242,7 +204,7 @@ public class MemberService {
 				throw new MemberNotRegisteredException(member.getNick());
 			}
 			
-			return unregisterJoomlaUser(member.getNick())
+			return joomlaRepository.unregisterJoomlaUser(member.getNick())
 					.map(joomlaUserId -> {
 						member.setActivat(Boolean.FALSE);
 						member.setDataBaixa(new Date());
@@ -257,7 +219,6 @@ public class MemberService {
 		}
 	}
 
-	@Transactional
 	public void delete(String memberId) throws BOUserNotFoundException, MemberStillRegisteredException {
 		try {
 			Associada member = repository.findById(memberId).orElseThrow(() -> new BOUserNotFoundException(memberId));
@@ -286,7 +247,7 @@ public class MemberService {
 				throw new MemberEmailAlreadyExistsException(data.getEmail());
 			}
 
-			return registerJoomlaUser(data.getNick())
+			return joomlaRepository.registerJoomlaUser(data.getNick())
 					.map(joomlaUserId -> {
 						Associada member = new Associada();
 						BeanUtils.copyProperties(data, member);
@@ -301,5 +262,40 @@ public class MemberService {
 					String.format("System error registering new member %s", data.getNick()), e, ERR_CREATE_MEMBER,
 					e.getMessage());
 		}
+	}
+	
+	public Map<String, Pair<String, String>> findInconsistentEmails() {
+		Map<String, Pair<String, String>> list = new HashMap<String, Pair<String, String>>();
+		
+		repository.findAll(Sort.by("nick").ascending()).forEach(associada -> {
+			joomlaRepository.getJoomlaEmail(associada.getNick())
+				.map(joomlaEmail -> {
+					if (!associada.getEmail().equalsIgnoreCase(joomlaEmail)) {
+						list.put(associada.getNick(), Pair.of(associada.getEmail(), joomlaEmail));
+					}					
+					return joomlaEmail;
+				})
+				.orElseGet(() -> {
+					list.put(associada.getNick(), Pair.of(associada.getEmail(), "notfound"));
+					return null;
+				});
+		});
+		
+		return list;
+	}	
+
+	public Map<String, Pair<String, String>> findInconsistentNicks() {
+		Map<String, Pair<String, String>> list = new HashMap<String, Pair<String, String>>();
+		
+		repository.findAll(Sort.by("nick").ascending()).forEach(associada -> {
+			joomlaRepository.getJoomlaName(associada.getEmail())
+				.ifPresent(joomlaName -> {
+					if (!associada.getNick().equalsIgnoreCase(joomlaName)) {
+						list.put(associada.getEmail(), Pair.of(associada.getNick(), joomlaName));
+					}
+				});
+		});
+		
+		return list;
 	}
 }
