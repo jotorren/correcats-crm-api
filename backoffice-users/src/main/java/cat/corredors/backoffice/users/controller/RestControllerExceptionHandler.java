@@ -1,5 +1,9 @@
 package cat.corredors.backoffice.users.controller;
- 
+
+import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.REST.ErrorCodes.*;
+import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Security.ErrorCodes.*;
+import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.*;
+
 import java.util.List;
 import java.util.Locale;
 
@@ -37,8 +41,8 @@ public class RestControllerExceptionHandler {
    public ResponseError defaultErrorHandlerAccessDeniedException(final HttpServletRequest request,
            final HttpServletResponse response, final AccessDeniedException e) {
        log.error(e.getMessage(), e);
-       return new ResponseError(BOUsersConstants.Security.ErrorCodes.ACCESS_DENIED,
-               messageSource.getMessage(BOUsersConstants.Security.ErrorCodes.PREFIX + BOUsersConstants.Security.ErrorCodes.ACCESS_DENIED,
+       return new ResponseError(ACCESS_DENIED,
+               messageSource.getMessage(BOUsersConstants.Security.ErrorCodes.PREFIX + ACCESS_DENIED,
                        new Object[] { e.getMessage() }, e.getMessage(), Locale.getDefault()));
    }
    
@@ -56,7 +60,7 @@ public class RestControllerExceptionHandler {
    public ResponseError defaultErrorHandlerSystemException(final HttpServletRequest request,
            final HttpServletResponse response, final BOUsersSystemFault e) {
        log.error(e.getMessage(), e);
-		if (BOUsersConstants.REST.ErrorCodes.ERR_LST == e.getCode()) {
+		if (ERR_LST == e.getCode()) {
 			return new ResponseError((List<ErrorBean>) e.getParameters()[0]);
 		} else {
 	       return new ResponseError(e.getCode(), messageSource
@@ -80,5 +84,14 @@ public class RestControllerExceptionHandler {
 	   log.error(e.getMessage(), e);
        return new ResponseError(e.getCode(), messageSource
                .getMessage(BOUsersConstants.REST.ErrorCodes.PREFIX + e.getCode(), e.getParameters(), e.getMessage(), Locale.getDefault()));
+   }
+   
+   @ExceptionHandler(Exception.class)
+   @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+   public ResponseError defaultErrorHandlerException(final HttpServletRequest request,
+           final HttpServletResponse response, final Exception e) {
+       log.error(e.getMessage(), e);
+       return new ResponseError(ERR_000, messageSource
+               .getMessage(BOUsersConstants.REST.ErrorCodes.PREFIX + ERR_000, new Object[]{ ERR_UNEXPECTED }, e.getMessage(), Locale.getDefault()));
    }
 }

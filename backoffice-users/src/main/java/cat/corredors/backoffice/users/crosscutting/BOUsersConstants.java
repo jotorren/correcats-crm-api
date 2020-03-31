@@ -73,6 +73,8 @@ public interface BOUsersConstants {
 	interface Domain {
 		
 		interface ErrorCodes {
+			String ERR_UNEXPECTED = "ERR-MEMBER-000";
+			
 			String ERR_LIST_MEMBERS = "ERR-MEMBER-001";
 			String ERR_FIND_MEMBER = "ERR-MEMBER-002";
 			String ERR_REGISTER_MEMBER = "ERR-MEMBER-003";
