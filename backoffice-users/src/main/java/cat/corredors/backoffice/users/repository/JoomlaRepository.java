@@ -45,7 +45,10 @@ public class JoomlaRepository {
 				}
 			}, new ResultSetExtractor<Integer>() {
 				public Integer extractData(ResultSet resultSet) throws SQLException, DataAccessException {
-					return resultSet.getInt(1);
+					if (resultSet.next()) {
+						return resultSet.getInt(1);
+					}
+					return null;
 				}
 			});
 	}
@@ -58,7 +61,10 @@ public class JoomlaRepository {
 				}
 			}, new ResultSetExtractor<Integer>() {
 				public Integer extractData(ResultSet resultSet) throws SQLException, DataAccessException {
-					return resultSet.getInt(1);
+					if (resultSet.next()) {
+						return resultSet.getInt(1);
+					}
+					return null;
 				}
 			});
 	}
@@ -79,7 +85,7 @@ public class JoomlaRepository {
 	}
 	
 	public Integer getJoomlaUserId(String nick) {
-		return selectInteger("SELECT id FROM e8yu3_users where name = ?", nick);
+		return selectInteger("SELECT id FROM e8yu3_users where name=?", nick);
 	}
 
 	public Optional<String> getJoomlaEmail(String nick) {
