@@ -10,7 +10,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
     generate-ddl: false
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
