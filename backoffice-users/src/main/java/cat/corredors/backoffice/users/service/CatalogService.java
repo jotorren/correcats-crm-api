@@ -23,10 +23,8 @@ import cat.corredors.backoffice.users.domain.Municipi;
 import cat.corredors.backoffice.users.repository.CodiPostalRepository;
 import cat.corredors.backoffice.users.repository.MunicipiRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class CatalogService {
 

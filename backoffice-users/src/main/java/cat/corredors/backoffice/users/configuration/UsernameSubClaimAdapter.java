@@ -33,7 +33,7 @@ public class UsernameSubClaimAdapter implements Converter<Map<String, Object>, M
 			return convertedClaims;
 		}
 		
-		log.info(messageSource.getMessage(ANY_SECURITY_CONTEXT_USER, new Object[] { username }, Locale.getDefault()));
+		log.debug(messageSource.getMessage(ANY_SECURITY_CONTEXT_USER, new Object[] { username }, Locale.getDefault()));
 		convertedClaims.put(SUBJECT_CLAIM, username);
 		
 		return convertedClaims;

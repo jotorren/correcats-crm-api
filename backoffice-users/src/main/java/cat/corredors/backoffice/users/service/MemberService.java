@@ -48,10 +48,8 @@ import cat.corredors.backoffice.users.repository.JoomlaRepository;
 import cat.corredors.backoffice.users.repository.SearchOperation;
 import cat.corredors.backoffice.users.repository.SpecSearchCriteria;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class MemberService {
 
