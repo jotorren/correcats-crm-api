@@ -11,9 +11,11 @@ import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domai
 import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.REST.ErrorCodes.ERR_018;
 import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.REST.ErrorCodes.PREFIX;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,9 +50,11 @@ import cat.corredors.backoffice.users.repository.JoomlaRepository;
 import cat.corredors.backoffice.users.repository.SearchOperation;
 import cat.corredors.backoffice.users.repository.SpecSearchCriteria;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MemberService {
 
 	private final AssociadaRepository repository;
@@ -87,6 +91,35 @@ public class MemberService {
 		}
 	}
 
+	public List<Map<String, Object>> findAll(List<String> fields, Optional<String> sortBy, boolean asc) {
+		try {
+			Sort sorter = sortBy
+					.map(column -> asc?Sort.by(column).ascending():Sort.by(column).descending())
+					.orElse(Sort.by(fields.get(0)).ascending());
+
+			List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
+			for (Associada ass:repository.findAll(sorter)) {
+				Map<String, Object> data = new LinkedHashMap<String, Object>();
+			
+				for (String field:fields) {
+					try {
+						data.put(field, org.apache.commons.beanutils.BeanUtils.getProperty(ass, field));
+					} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+						log.error("Error extracting bean fields", e);
+					}
+				}
+				
+				res.add(data);
+			}
+			
+			return res;
+			
+		} catch (DataAccessException e) {
+			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
+					e, ERR_LIST_MEMBERS, e.getMessage());
+		}
+	}
+	
 	public Associada findOne(String memberId) throws BOUserNotFoundException {
 		try {
 			return repository.findById(memberId).orElseThrow(() -> new BOUserNotFoundException(memberId));

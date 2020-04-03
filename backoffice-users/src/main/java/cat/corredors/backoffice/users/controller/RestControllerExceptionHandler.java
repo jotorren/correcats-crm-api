@@ -1,8 +1,9 @@
 package cat.corredors.backoffice.users.controller;
 
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.REST.ErrorCodes.*;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Security.ErrorCodes.*;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.*;
+import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_UNEXPECTED;
+import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.REST.ErrorCodes.ERR_000;
+import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.REST.ErrorCodes.ERR_501;
+import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Security.ErrorCodes.ACCESS_DENIED;
 
 import java.util.List;
 import java.util.Locale;
@@ -15,9 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import cat.corredors.backoffice.users.crosscutting.BOUserNotFoundException;
 import cat.corredors.backoffice.users.crosscutting.BOUsersConstants;
@@ -44,6 +47,26 @@ public class RestControllerExceptionHandler {
                new Object[] { e.getMessage() }, e.getMessage(), Locale.getDefault());
        log.error(err, e);
        return new ResponseError(ACCESS_DENIED, err);
+   }
+
+   @ExceptionHandler(MissingServletRequestParameterException.class)
+   @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+   public ResponseError handleMissinParameterException(final HttpServletRequest request,
+           final HttpServletResponse response, final MissingServletRequestParameterException e) {
+	   String err = messageSource.getMessage(BOUsersConstants.REST.ErrorCodes.PREFIX + ERR_501,
+               new Object[] { e.getMessage() }, e.getMessage(), Locale.getDefault());
+       log.error(err, e);
+	   return new ResponseError(ERR_501, err);
+   }
+
+   @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+   @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+   public ResponseError handleTypeMismatchException(final HttpServletRequest request,
+           final HttpServletResponse response, final MethodArgumentTypeMismatchException e) {
+	   String err = messageSource.getMessage(BOUsersConstants.REST.ErrorCodes.PREFIX + ERR_501,
+               new Object[] { e.getMostSpecificCause().getMessage() }, e.getMessage(), Locale.getDefault());
+       log.error(err, e);
+	   return new ResponseError(ERR_501, err);
    }
    
    @ExceptionHandler(ConstraintViolationException.class)

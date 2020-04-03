@@ -1,9 +1,11 @@
 package cat.corredors.backoffice.users.controller;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.data.util.Pair;
@@ -86,6 +88,17 @@ public interface MemberApi {
 			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<Map<String, Pair<String, String>>>> listInconsistentEmails();
+
+	@GetMapping(
+			value = "/export", 
+			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    void download(
+    		HttpServletResponse response,
+    		List<String> fields,
+    		@ApiParam(value = "Field to sort results", required = false) Optional<String> sortBy,
+    		@ApiParam(value = "Sort direction", required = false) Optional<Boolean> asc    		
+    		) throws IOException;
 	
 	@PutMapping(
 			value = "/{memberId}", 

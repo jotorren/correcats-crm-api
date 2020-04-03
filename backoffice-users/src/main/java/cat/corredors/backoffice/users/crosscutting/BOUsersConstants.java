@@ -7,6 +7,9 @@ public interface BOUsersConstants {
 
 	interface REST {
 
+		String DOWNLOAD_FILE_NAME = "associats.csv";
+		String DOWNLOAD_CONTENT_TYPE = "text/csv";
+		
 		interface Endpoints {
 			String API_BASE = "/api";
 			String API_VERSION = "v=1";
