@@ -43,6 +43,7 @@ testem.log
 package-lock.json
 /typings
 /transaction-logs
+/data
 ENVIRONMENT.txt
 *.lck
 *.log
