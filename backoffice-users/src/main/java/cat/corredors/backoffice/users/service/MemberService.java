@@ -1,5 +1,7 @@
 package cat.corredors.backoffice.users.service;
 
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeLogMessages.MEMBER_EXPORT_FILE_ERROR;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeLogMessages.MEMBER_FIELDS_SELECTION_ERROR;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_CHECK_EMAIL;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_CHECK_NICK;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_CREATE_MEMBER;
@@ -11,7 +13,12 @@ import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstan
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.ErrorCodes.ERR_018;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.ErrorCodes.PREFIX;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,8 +28,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataAccessException;
@@ -31,8 +41,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import cat.corredors.backoffice.users.configuration.BackOfficeUsersConfigurationProperties;
 import cat.corredors.backoffice.users.crosscutting.BackOfficeUserNotFoundException;
 import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants;
 import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersSystemFault;
@@ -51,6 +63,7 @@ import cat.corredors.backoffice.users.repository.SearchOperation;
 import cat.corredors.backoffice.users.repository.SpecSearchCriteria;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +73,15 @@ public class MemberService {
 	private final AssociadaRepository repository;
 	private final JoomlaRepository joomlaRepository;
 	private final MessageSource messageSource;
+	private final BackOfficeUsersConfigurationProperties configuration;
+	private final DataPublisher publisher;
+	
+	private Flux<String> sharedFlux;
+	
+	@PostConstruct
+	public void init() {
+		sharedFlux =  Flux.create(publisher).share(); 
+	}
 	
 	public Page<Object> findAll(int offset, int limit, Optional<String> search, Optional<String> sortBy, boolean asc) {
 		try {
@@ -105,7 +127,7 @@ public class MemberService {
 					try {
 						data.put(field, org.apache.commons.beanutils.BeanUtils.getProperty(ass, field));
 					} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-						log.error("Error extracting bean fields", e);
+						log.error(messageSource.getMessage(MEMBER_FIELDS_SELECTION_ERROR, new Object[] { }, Locale.getDefault()), e);
 					}
 				}
 				
@@ -118,6 +140,45 @@ public class MemberService {
 			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
 					e, ERR_LIST_MEMBERS, e.getMessage());
 		}
+	}
+	
+	@Async
+	public void export(List<String> fields, Optional<String> sortBy, boolean asc, String fileName) {
+		
+		OutputStreamWriter fw = null;
+		CSVPrinter printer = null;
+		try {
+			fw = new OutputStreamWriter(
+					new FileOutputStream(new File(configuration.getExportDirectory(), fileName)),
+					StandardCharsets.ISO_8859_1);
+			printer = new CSVPrinter(fw, CSVFormat.DEFAULT);
+			printer.printRecord("SEP=,");
+			for (Map<String, Object> data:findAll(fields, sortBy, asc)){
+				printer.printRecord(data.values());
+			}
+			publisher.push(fileName);
+		} catch (IOException e) {
+			log.error(messageSource.getMessage(MEMBER_EXPORT_FILE_ERROR, new Object[] { fileName }, Locale.getDefault()), e);
+		} finally {
+			if (null != fw) {
+				try {
+					fw.close();
+				} catch (IOException e) {
+					log.warn(e.getMessage());
+				}
+			}
+			if (null != printer) {
+				try {
+					printer.close();
+				} catch (IOException e) {
+					log.warn(e.getMessage());
+				}
+			}
+		}
+	}
+
+	public Flux<String> liveUpdates() {
+		return sharedFlux;
 	}
 	
 	public Associada findOne(String memberId) throws BackOfficeUserNotFoundException {

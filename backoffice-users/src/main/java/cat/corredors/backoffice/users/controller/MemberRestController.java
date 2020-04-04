@@ -4,6 +4,8 @@ import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstan
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.DOWNLOAD_FILE_NAME;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.InfoCodes.INF_001;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import cat.corredors.backoffice.users.configuration.BackOfficeUsersConfigurationProperties;
 import cat.corredors.backoffice.users.crosscutting.BackOfficeUserNotFoundException;
 import cat.corredors.backoffice.users.crosscutting.MemberAlreadyRegisteredException;
 import cat.corredors.backoffice.users.crosscutting.MemberEmailAlreadyExistsException;
@@ -35,15 +38,19 @@ import cat.corredors.backoffice.users.domain.AssociadaForm;
 import cat.corredors.backoffice.users.domain.AssociadaListItem;
 import cat.corredors.backoffice.users.service.MemberService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class MemberRestController implements MemberApi {
 
 	private final MemberService service;
 	private final BeanValidator beanValidator;
 	private final Function<String, URI> internalIdToURI;
-
+	private final BackOfficeUsersConfigurationProperties configuration;
+	
 	@Override
 	public ResponseEntity<ResponseData<PageBean<AssociadaListItem>>> listMembers(@RequestParam int offset,
 			@RequestParam int limit, @RequestParam Optional<String> search, @RequestParam Optional<String> sortBy,
@@ -97,9 +104,8 @@ public class MemberRestController implements MemberApi {
 	}
 
 	@Override
-	public void download(HttpServletResponse response, @RequestParam List<String> fields,
-			@RequestParam Optional<String> sortBy, @RequestParam Optional<Boolean> asc)
-			throws IOException {
+	public void export(HttpServletResponse response, @RequestParam List<String> fields,
+			@RequestParam Optional<String> sortBy, @RequestParam Optional<Boolean> asc) throws IOException {
 
 		response.setContentType(DOWNLOAD_CONTENT_TYPE);
 		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + DOWNLOAD_FILE_NAME + "\"");
@@ -112,10 +118,56 @@ public class MemberRestController implements MemberApi {
 				printer.printRecord(data.values());
 			}
 		} finally {
-			printer.close();
+			try {
+				printer.close();
+			} catch (IOException e) {
+				log.warn(e.getMessage());
+			}
 		}
 	}
 
+	@Override
+	public ResponseEntity<ResponseData<String>> exportAsync(@RequestParam List<String> fields,
+			@RequestParam Optional<String> sortBy, @RequestParam Optional<Boolean> asc)
+			throws IOException {
+		String fileName = DOWNLOAD_FILE_NAME + "-" + System.currentTimeMillis();
+		service.export(fields, sortBy, asc.orElse(true), fileName);
+		return ResponseEntity.ok(new ResponseData<String>(INF_001, fileName));
+	}
+
+	@Override
+	public Flux<String> liveUpdates() {		
+		return service.liveUpdates();
+	}
+
+	@Override
+	public void download(HttpServletResponse response, String file) throws IOException {
+		File f = new File(configuration.getExportDirectory(), file);
+		if (f.exists() && f.canRead()) {
+			response.setContentType(DOWNLOAD_CONTENT_TYPE);
+			response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + DOWNLOAD_FILE_NAME + "\"");
+			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "Content-Disposition");
+			
+			FileInputStream fr = null;
+			try {
+				fr = new FileInputStream(f);
+				byte[] buff = new byte[1024];
+				int read = 0;
+				while ((read = fr.read(buff))>0) {
+					response.getOutputStream().write(buff, 0, read);
+				}
+			} finally {
+				if (null != fr) {
+					try {
+						fr.close();
+					} catch (IOException e) {
+						log.warn(e.getMessage());
+					}
+				}
+			}
+		}
+	}
+	
 	@Override
 	public ResponseEntity<ResponseData<Associada>> updateMember(@PathVariable String memberId,
 			@RequestBody AssociadaForm data)

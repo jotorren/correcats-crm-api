@@ -3,15 +3,23 @@ package cat.corredors.backoffice.users.configuration;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.Endpoints.API_BASE;
 
 import java.net.URI;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Configuration
-public class BackOfficeUsersConfiguration implements WebMvcConfigurer {
+@EnableConfigurationProperties(BackOfficeUsersConfigurationProperties.class)
+@EnableAsync
+public class BackOfficeUsersConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
 //    private static final String DATEFORMAT = "dd/MM/yyyy";
 //    private static final String DATETIMEFORMAT = "dd/MM/yyyy HH:mm:ss";
@@ -51,6 +59,22 @@ public class BackOfficeUsersConfiguration implements WebMvcConfigurer {
 //        };
 //    }
 
+	@Override
+    public Executor getAsyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(3);
+        executor.setMaxPoolSize(3);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("AsynchThread-");
+        executor.initialize();
+        return executor;
+    }
+    
+    @Override
+    public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+        configurer.setTaskExecutor((ThreadPoolTaskExecutor)getAsyncExecutor());
+    }
+    
 	@Bean
 	public Function<String, URI> internalIdToURI() {
 		return (String id) -> null == id ? URI.create("")

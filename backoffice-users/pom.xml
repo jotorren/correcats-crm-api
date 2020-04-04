@@ -38,6 +38,12 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<!-- Reactive stack -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+		
 		<!-- Spring endpoints monitor -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

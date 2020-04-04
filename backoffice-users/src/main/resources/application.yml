@@ -22,7 +22,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: '*'  
+        include: '*'
+        
+backoffice:
+  users:
+    export-directory: data
+  
 ---
 
 spring:

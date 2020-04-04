@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import cat.corredors.backoffice.users.crosscutting.BackOfficeUserNotFoundException;
 import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants;
@@ -29,6 +30,7 @@ import cat.corredors.backoffice.users.domain.Associada;
 import cat.corredors.backoffice.users.domain.AssociadaForm;
 import cat.corredors.backoffice.users.domain.AssociadaListItem;
 import io.swagger.annotations.ApiParam;
+import reactor.core.publisher.Flux;
 
 @Validated
 @RequestMapping(BackOfficeUsersConstants.REST.Endpoints.API_BASE)
@@ -93,12 +95,38 @@ public interface MemberApi {
 			value = "/export", 
 			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    void download(
+    void export(
     		HttpServletResponse response,
     		List<String> fields,
     		@ApiParam(value = "Field to sort results", required = false) Optional<String> sortBy,
     		@ApiParam(value = "Sort direction", required = false) Optional<Boolean> asc    		
     		) throws IOException;
+
+	@GetMapping(
+			value = "/export/async", 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	ResponseEntity<ResponseData<String>> exportAsync(
+    		List<String> fields,
+    		@ApiParam(value = "Field to sort results", required = false) Optional<String> sortBy,
+    		@ApiParam(value = "Sort direction", required = false) Optional<Boolean> asc    		
+    		) throws IOException;
+	
+	@GetMapping(
+			value = "/export/updates", 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
+			produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+	@ResponseBody
+	Flux<String> liveUpdates();
+
+	@GetMapping(
+			value = "/download", 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
+			produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    void download(
+    		HttpServletResponse response,
+    		String file
+    ) throws IOException;
 	
 	@PutMapping(
 			value = "/{memberId}", 
