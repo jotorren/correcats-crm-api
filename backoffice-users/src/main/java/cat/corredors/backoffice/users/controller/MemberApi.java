@@ -113,12 +113,18 @@ public interface MemberApi {
     		) throws IOException;
 	
 	@GetMapping(
-			value = "/export/updates", 
+			value = "/export/live", 
 			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	@ResponseBody
 	Flux<String> liveUpdates();
 
+	@GetMapping(
+			value = "/export/ready", 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	ResponseEntity<ResponseData<Boolean>> isReady(String file);
+	
 	@GetMapping(
 			value = "/download", 
 			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 

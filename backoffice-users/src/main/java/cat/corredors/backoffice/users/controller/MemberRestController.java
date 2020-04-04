@@ -141,6 +141,12 @@ public class MemberRestController implements MemberApi {
 	}
 
 	@Override
+	public ResponseEntity<ResponseData<Boolean>> isReady(String file) {
+		File f = new File(configuration.getExportDirectory(), file);
+		return ResponseEntity.ok(new ResponseData<Boolean>(INF_001, f.exists() && f.canRead()));
+	}
+	
+	@Override
 	public void download(HttpServletResponse response, String file) throws IOException {
 		File f = new File(configuration.getExportDirectory(), file);
 		if (f.exists() && f.canRead()) {

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Level;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
@@ -80,7 +81,7 @@ public class MemberService {
 	
 	@PostConstruct
 	public void init() {
-		sharedFlux =  Flux.create(publisher).share(); 
+		sharedFlux =  Flux.create(publisher).share().log(null, Level.ALL);
 	}
 	
 	public Page<Object> findAll(int offset, int limit, Optional<String> search, Optional<String> sortBy, boolean asc) {
@@ -178,6 +179,7 @@ public class MemberService {
 	}
 
 	public Flux<String> liveUpdates() {
+		log.info("Connecting to live updates ");
 		return sharedFlux;
 	}
 	

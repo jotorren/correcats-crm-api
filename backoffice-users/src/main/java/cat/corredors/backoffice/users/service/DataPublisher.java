@@ -19,6 +19,7 @@ public class DataPublisher implements Consumer<FluxSink<String>> {
 	private final Executor executor = Executors.newSingleThreadExecutor();
 	
 	public boolean push(String message) {
+		log.info("Queueing '{}'", message);
 		return queue.offer(message);
 	}
 	
@@ -28,6 +29,7 @@ public class DataPublisher implements Consumer<FluxSink<String>> {
 			while (true) {
 				try {
 					String message = queue.take();
+					log.info("Sending to FluxSink {}", message);
 					sink.next(message);
 				} catch (InterruptedException e) {
 					log.error(e.getMessage());
