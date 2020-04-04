@@ -1,15 +1,15 @@
 package cat.corredors.backoffice.users.service;
 
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_CHECK_EMAIL;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_CHECK_NICK;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_CREATE_MEMBER;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_DELETE_MEMBER;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_FIND_MEMBER;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_LIST_MEMBERS;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_REGISTER_MEMBER;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_UNREGISTER_MEMBER;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.REST.ErrorCodes.ERR_018;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.REST.ErrorCodes.PREFIX;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_CHECK_EMAIL;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_CHECK_NICK;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_CREATE_MEMBER;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_DELETE_MEMBER;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_FIND_MEMBER;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_LIST_MEMBERS;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_REGISTER_MEMBER;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_UNREGISTER_MEMBER;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.ErrorCodes.ERR_018;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.ErrorCodes.PREFIX;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -33,9 +33,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import cat.corredors.backoffice.users.crosscutting.BOUserNotFoundException;
-import cat.corredors.backoffice.users.crosscutting.BOUsersConstants;
-import cat.corredors.backoffice.users.crosscutting.BOUsersSystemFault;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeUserNotFoundException;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersSystemFault;
 import cat.corredors.backoffice.users.crosscutting.MemberAlreadyRegisteredException;
 import cat.corredors.backoffice.users.crosscutting.MemberEmailAlreadyExistsException;
 import cat.corredors.backoffice.users.crosscutting.MemberNickAlreadyExistsException;
@@ -86,7 +86,7 @@ public class MemberService {
 						return item;						
 					});
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
 					e, ERR_LIST_MEMBERS, e.getMessage());
 		}
 	}
@@ -115,21 +115,21 @@ public class MemberService {
 			return res;
 			
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
 					e, ERR_LIST_MEMBERS, e.getMessage());
 		}
 	}
 	
-	public Associada findOne(String memberId) throws BOUserNotFoundException {
+	public Associada findOne(String memberId) throws BackOfficeUserNotFoundException {
 		try {
-			return repository.findById(memberId).orElseThrow(() -> new BOUserNotFoundException(memberId));
+			return repository.findById(memberId).orElseThrow(() -> new BackOfficeUserNotFoundException(memberId));
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000,
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
 					String.format("System error looking for member %s", memberId), e, ERR_FIND_MEMBER, e.getMessage());
 		}
 	}
 
-	public boolean isNickAvailable(String nick) throws MemberNickAlreadyExistsException, BOUserNotFoundException {
+	public boolean isNickAvailable(String nick) throws MemberNickAlreadyExistsException, BackOfficeUserNotFoundException {
 		try {
 
 			if (!this.repository.findByNickIgnoreCase(nick).isEmpty()) {
@@ -137,12 +137,12 @@ public class MemberService {
 			}
 
 			if (null == joomlaRepository.getJoomlaUserId(nick)) {
-				throw new BOUserNotFoundException(nick);
+				throw new BackOfficeUserNotFoundException(nick);
 			}
 			
 			return true;
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000,
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
 					String.format("System error looking for nick %s", nick), e, ERR_CHECK_NICK, e.getMessage());
 		}
 	}
@@ -156,12 +156,12 @@ public class MemberService {
 			
 			return true;
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000,
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
 					String.format("System error looking for email %s", email), e, ERR_CHECK_EMAIL, e.getMessage());
 		}
 	}
 
-	public List<String> checkConsistency(String nick, String email) throws BOUserNotFoundException {
+	public List<String> checkConsistency(String nick, String email) throws BackOfficeUserNotFoundException {
 		
 		List<String> failed = new ArrayList<String>();
 				
@@ -172,15 +172,15 @@ public class MemberService {
 			
 			return joomlaEmail;
 		})
-		.orElseThrow(() -> new BOUserNotFoundException(nick));
+		.orElseThrow(() -> new BackOfficeUserNotFoundException(nick));
 		
 		return failed;
 	}
 	
 	@Transactional
-	public Associada register(String memberId) throws BOUserNotFoundException, MemberAlreadyRegisteredException {
+	public Associada register(String memberId) throws BackOfficeUserNotFoundException, MemberAlreadyRegisteredException {
 		try {
-			Associada member = repository.findById(memberId).orElseThrow(() -> new BOUserNotFoundException(memberId));
+			Associada member = repository.findById(memberId).orElseThrow(() -> new BackOfficeUserNotFoundException(memberId));
 			
 			if (member.getActivat()) {
 				throw new MemberAlreadyRegisteredException(member.getNick());
@@ -192,19 +192,19 @@ public class MemberService {
 						member.setDataBaixa(null);
 						return this.repository.save(member);
 					})
-					.orElseThrow(() -> new BOUserNotFoundException(member.getNick()));
+					.orElseThrow(() -> new BackOfficeUserNotFoundException(member.getNick()));
 			
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000,
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
 					String.format("System error registering existent %s", memberId), e, ERR_REGISTER_MEMBER,
 					e.getMessage());
 		}
 	}
 
 	public Associada update(String memberId, AssociadaForm data) 
-			throws BOUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException {
+			throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException {
 		try {
-			Associada member = repository.findById(memberId).orElseThrow(() -> new BOUserNotFoundException(memberId));
+			Associada member = repository.findById(memberId).orElseThrow(() -> new BackOfficeUserNotFoundException(memberId));
 
 			List<Associada> list = this.repository.findByNickIgnoreCase(data.getNick());
 			if (!list.isEmpty() && list.stream().anyMatch(item -> !item.getId().equalsIgnoreCase(memberId))) {
@@ -220,16 +220,16 @@ public class MemberService {
 			return this.repository.save(member);
 			
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000,
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
 					String.format("System error registering existent %s", memberId), e, ERR_REGISTER_MEMBER,
 					e.getMessage());
 		}
 	}
 	
 	@Transactional
-	public Associada unregister(String memberId) throws BOUserNotFoundException, MemberNotRegisteredException {
+	public Associada unregister(String memberId) throws BackOfficeUserNotFoundException, MemberNotRegisteredException {
 		try {
-			Associada member = repository.findById(memberId).orElseThrow(() -> new BOUserNotFoundException(memberId));
+			Associada member = repository.findById(memberId).orElseThrow(() -> new BackOfficeUserNotFoundException(memberId));
 			
 			if (!member.getActivat()) {
 				throw new MemberNotRegisteredException(member.getNick());
@@ -241,18 +241,18 @@ public class MemberService {
 						member.setDataBaixa(new Date());
 						return this.repository.save(member);
 					})
-					.orElseThrow(() -> new BOUserNotFoundException(member.getNick()));
+					.orElseThrow(() -> new BackOfficeUserNotFoundException(member.getNick()));
 
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000,
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
 					String.format("System error unregistering %s", memberId), e, ERR_UNREGISTER_MEMBER,
 					e.getMessage());
 		}
 	}
 
-	public void delete(String memberId) throws BOUserNotFoundException, MemberStillRegisteredException {
+	public void delete(String memberId) throws BackOfficeUserNotFoundException, MemberStillRegisteredException {
 		try {
-			Associada member = repository.findById(memberId).orElseThrow(() -> new BOUserNotFoundException(memberId));
+			Associada member = repository.findById(memberId).orElseThrow(() -> new BackOfficeUserNotFoundException(memberId));
 			
 			if (member.getActivat()) {
 				throw new MemberStillRegisteredException(member.getNick());
@@ -261,14 +261,14 @@ public class MemberService {
 			this.repository.delete(member);
 
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000,
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
 					String.format("System error deleting %s", memberId), e, ERR_DELETE_MEMBER,
 					e.getMessage());
 		}
 	}
 	
 	@Transactional
-	public Associada create(AssociadaForm data) throws BOUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException {
+	public Associada create(AssociadaForm data) throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException {
 		try {
 			if (!this.repository.findByNickIgnoreCase(data.getNick()).isEmpty()) {
 				throw new MemberNickAlreadyExistsException(data.getNick());
@@ -286,10 +286,10 @@ public class MemberService {
 						member.setDataBaixa(null);
 						return this.repository.save(member);
 					})
-					.orElseThrow(() -> new BOUserNotFoundException(data.getNick()));
+					.orElseThrow(() -> new BackOfficeUserNotFoundException(data.getNick()));
 			
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000,
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
 					String.format("System error registering new member %s", data.getNick()), e, ERR_CREATE_MEMBER,
 					e.getMessage());
 		}

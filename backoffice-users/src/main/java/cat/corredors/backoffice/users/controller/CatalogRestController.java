@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import cat.corredors.backoffice.users.crosscutting.BOUsersConstants;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants;
 import cat.corredors.backoffice.users.domain.CodiPostal;
 import cat.corredors.backoffice.users.domain.Municipi;
 import cat.corredors.backoffice.users.service.CatalogService;
@@ -35,12 +35,12 @@ public class CatalogRestController implements CatalogApi {
 		pageBean.setNumberOfElements(page.getNumberOfElements());
 		pageBean.setIncluded(page.getContent().toArray(new Municipi[page.getNumberOfElements()]));
 
-		return ResponseEntity.ok(new ResponseData<PageBean<Municipi>>(BOUsersConstants.REST.InfoCodes.INF_001, pageBean));
+		return ResponseEntity.ok(new ResponseData<PageBean<Municipi>>(BackOfficeUsersConstants.REST.InfoCodes.INF_001, pageBean));
 	}
 
 	@Override
 	public ResponseEntity<ResponseData<List<Municipi>>> searchMunicipis(@RequestParam String search) {
-		return ResponseEntity.ok(new ResponseData<List<Municipi>>(BOUsersConstants.REST.InfoCodes.INF_001,
+		return ResponseEntity.ok(new ResponseData<List<Municipi>>(BackOfficeUsersConstants.REST.InfoCodes.INF_001,
 				service.searchMunicipis(search)));
 	}
 	
@@ -48,7 +48,7 @@ public class CatalogRestController implements CatalogApi {
 	public ResponseEntity<ResponseData<List<Municipi>>> getMunicipis(
 			@RequestParam String codiPostal) {
 
-		return ResponseEntity.ok(new ResponseData<List<Municipi>>(BOUsersConstants.REST.InfoCodes.INF_001, 
+		return ResponseEntity.ok(new ResponseData<List<Municipi>>(BackOfficeUsersConstants.REST.InfoCodes.INF_001, 
 				service.findMunicipisForPostalCode(codiPostal)));
 	}
 
@@ -56,7 +56,7 @@ public class CatalogRestController implements CatalogApi {
 	public ResponseEntity<ResponseData<List<CodiPostal>>> getCodisPostals(
 			@RequestParam String municipi) {
 
-		return ResponseEntity.ok(new ResponseData<List<CodiPostal>>(BOUsersConstants.REST.InfoCodes.INF_001, 
+		return ResponseEntity.ok(new ResponseData<List<CodiPostal>>(BackOfficeUsersConstants.REST.InfoCodes.INF_001, 
 				service.findCodiPostals(municipi)));
 	}
 

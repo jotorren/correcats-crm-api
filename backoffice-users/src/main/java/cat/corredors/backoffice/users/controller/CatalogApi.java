@@ -11,7 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import cat.corredors.backoffice.users.crosscutting.BOUsersConstants;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants;
 import cat.corredors.backoffice.users.domain.CodiPostal;
 import cat.corredors.backoffice.users.domain.Municipi;
 import io.swagger.annotations.ApiParam;
@@ -22,7 +22,7 @@ public interface CatalogApi {
 
 	@GetMapping(
 			value = "/municipi", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<PageBean<Municipi>>> listMunicipis(
     		@ApiParam(value = "List offset", required = true) @NotNull int offset, 
@@ -32,7 +32,7 @@ public interface CatalogApi {
 
 	@GetMapping(
 			value = "/municipi/search", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<List<Municipi>>> searchMunicipis(
     		@ApiParam(value = "Value to search in name", required = true) @NotNull String search
@@ -40,7 +40,7 @@ public interface CatalogApi {
 	
 	@GetMapping(
 			value = "/municipi/codipostal", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<List<Municipi>>> getMunicipis(
     		@ApiParam(value = "Postal code", required = true) @NotNull String codiPostal
@@ -48,7 +48,7 @@ public interface CatalogApi {
 	
 	@GetMapping(
 			value = "/codipostal", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<List<CodiPostal>>> getCodisPostals(
     		@ApiParam(value = "Municipi code", required = true) @NotNull String municipi

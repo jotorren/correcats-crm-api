@@ -1,6 +1,6 @@
 package cat.corredors.backoffice.users.crosscutting;
 
-public class BOUsersException extends Exception {
+public class BackOfficeUsersException extends Exception {
 	private static final long serialVersionUID = -3043893514096899580L;
 
 	private Object[] params;
@@ -15,7 +15,7 @@ public class BOUsersException extends Exception {
 	 * @param message
 	 *            default message
 	 */
-	public BOUsersException(int code, String message) {
+	public BackOfficeUsersException(int code, String message) {
 		super(message);
 		this.code = code;
 	}
@@ -31,7 +31,7 @@ public class BOUsersException extends Exception {
 	 * @param cause
 	 *            captured exception, error origin
 	 */
-	public BOUsersException(int code, String message, Throwable cause) {
+	public BackOfficeUsersException(int code, String message, Throwable cause) {
 		super(message, cause);
 		this.code = code;
 	}
@@ -48,7 +48,7 @@ public class BOUsersException extends Exception {
 	 * @param params
 	 *            the array of parameters to build the corresponding message
 	 */
-	public BOUsersException(int code, String message, Object... params) {
+	public BackOfficeUsersException(int code, String message, Object... params) {
 		super(message);
 		this.code = code;
 		this.params = params;
@@ -68,7 +68,7 @@ public class BOUsersException extends Exception {
 	 * @param params
 	 *            the array of parameters to build the corresponding message
 	 */
-	public BOUsersException(int code, String message, Throwable cause, Object... params) {
+	public BackOfficeUsersException(int code, String message, Throwable cause, Object... params) {
 		super(message, cause);
 		this.code = code;
 		this.params = params;

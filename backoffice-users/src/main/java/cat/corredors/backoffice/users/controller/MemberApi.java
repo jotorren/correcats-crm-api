@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import cat.corredors.backoffice.users.crosscutting.BOUserNotFoundException;
-import cat.corredors.backoffice.users.crosscutting.BOUsersConstants;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeUserNotFoundException;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants;
 import cat.corredors.backoffice.users.crosscutting.MemberAlreadyRegisteredException;
 import cat.corredors.backoffice.users.crosscutting.MemberEmailAlreadyExistsException;
 import cat.corredors.backoffice.users.crosscutting.MemberNickAlreadyExistsException;
@@ -31,12 +31,12 @@ import cat.corredors.backoffice.users.domain.AssociadaListItem;
 import io.swagger.annotations.ApiParam;
 
 @Validated
-@RequestMapping(BOUsersConstants.REST.Endpoints.API_BASE)
+@RequestMapping(BackOfficeUsersConstants.REST.Endpoints.API_BASE)
 public interface MemberApi {
 
 	@GetMapping(
 			value = "/", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<PageBean<AssociadaListItem>>> listMembers(
     		@ApiParam(value = "List offset", required = true) @NotNull int offset, 
@@ -48,50 +48,50 @@ public interface MemberApi {
 
 	@GetMapping(
 			value = "/{memberId}", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<Associada>> getMember(
     		@NotNull String memberId) 
-    		throws BOUserNotFoundException;
+    		throws BackOfficeUserNotFoundException;
 
 	@GetMapping(
 			value = "/nick", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<Boolean>> isNickOk(
     		@NotNull String nick)
-    		throws BOUserNotFoundException, MemberNickAlreadyExistsException;
+    		throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException;
 
 	@GetMapping(
 			value = "/email", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<Boolean>> isEmailOk(
     		@NotNull String email) throws MemberEmailAlreadyExistsException;
 	
 	@GetMapping(
 			value = "/consistency", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<List<String>>> checkConsistency(
     		@NotNull String nick,
-    		@NotNull String email) throws BOUserNotFoundException;
+    		@NotNull String email) throws BackOfficeUserNotFoundException;
 
 	@GetMapping(
 			value = "/consistency/nicks", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<Map<String, Pair<String, String>>>> listInconsistentNicks();
 
 	@GetMapping(
 			value = "/consistency/emails", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<Map<String, Pair<String, String>>>> listInconsistentEmails();
 
 	@GetMapping(
 			value = "/export", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     void download(
     		HttpServletResponse response,
@@ -102,48 +102,48 @@ public interface MemberApi {
 	
 	@PutMapping(
 			value = "/{memberId}", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION,
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION,
 			consumes = { MediaType.APPLICATION_JSON_VALUE },
 			produces = { MediaType.APPLICATION_JSON_VALUE }
 	)
 	ResponseEntity<ResponseData<Associada>> updateMember(
 			@NotNull String memberId, @NotNull AssociadaForm data) 
-			throws BOUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException;
+			throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException;
 	
 	@PutMapping(
 			value = "/register/{memberId}", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = { MediaType.APPLICATION_JSON_VALUE }
 	)
 	ResponseEntity<ResponseData<Associada>> registerMember(
 			@NotNull String memberId) 
-			throws BOUserNotFoundException, MemberAlreadyRegisteredException;
+			throws BackOfficeUserNotFoundException, MemberAlreadyRegisteredException;
 
 	@PutMapping(
 			value = "/unregister/{memberId}", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = { MediaType.APPLICATION_JSON_VALUE }
 	)
 	ResponseEntity<ResponseData<Associada>> unregisterMember(
 			@NotNull String memberId) 
-			throws BOUserNotFoundException, MemberNotRegisteredException;
+			throws BackOfficeUserNotFoundException, MemberNotRegisteredException;
 	
 	@DeleteMapping(
 			value = "/{memberId}", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION, 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = { MediaType.APPLICATION_JSON_VALUE }
 	)
 	ResponseEntity<ResponseData<Void>> deleteMember(
 			@NotNull String memberId) 
-			throws BOUserNotFoundException, MemberStillRegisteredException;
+			throws BackOfficeUserNotFoundException, MemberStillRegisteredException;
 	
 	@PostMapping(
 			value = "/", 
-			params = BOUsersConstants.REST.Endpoints.API_VERSION,
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION,
 			consumes = { MediaType.APPLICATION_JSON_VALUE },
 			produces = { MediaType.APPLICATION_JSON_VALUE }
 	)
 	ResponseEntity<ResponseData<String>> registerMember(
 			@NotNull AssociadaForm data) 
-			throws BOUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException;
+			throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException;
 }

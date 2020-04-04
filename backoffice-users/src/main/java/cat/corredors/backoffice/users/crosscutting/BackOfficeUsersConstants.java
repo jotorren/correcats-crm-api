@@ -3,7 +3,7 @@ package cat.corredors.backoffice.users.crosscutting;
 /**
  * This class is engaged to cast application scoped constants.
  */
-public interface BOUsersConstants {
+public interface BackOfficeUsersConstants {
 
 	interface REST {
 

@@ -1,10 +1,10 @@
 package cat.corredors.backoffice.users.configuration;
 
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Security.OIDC.AUTHORITIES_CLAIM;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Security.OIDC.CLIENT_FIELD;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Security.OIDC.ROLES_FIELD;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Security.OIDC.ROLE_PREFIX;
-import static cat.corredors.backoffice.users.crosscutting.LogMessages.ANY_SECURITY_CLAIM_FIELD_NOT_FOUND;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.OIDC.AUTHORITIES_CLAIM;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.OIDC.CLIENT_FIELD;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.OIDC.ROLES_FIELD;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.OIDC.ROLE_PREFIX;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeLogMessages.ANY_SECURITY_CLAIM_FIELD_NOT_FOUND;
 
 import java.util.Collection;
 import java.util.Collections;

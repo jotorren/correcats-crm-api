@@ -1,6 +1,6 @@
 package cat.corredors.backoffice.users.configuration;
 
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.REST.Endpoints.API_BASE;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.Endpoints.API_BASE;
 
 import java.net.URI;
 import java.util.function.Function;
@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Configuration
-public class BOUsersConfiguration implements WebMvcConfigurer {
+public class BackOfficeUsersConfiguration implements WebMvcConfigurer {
 
 //    private static final String DATEFORMAT = "dd/MM/yyyy";
 //    private static final String DATETIMEFORMAT = "dd/MM/yyyy HH:mm:ss";

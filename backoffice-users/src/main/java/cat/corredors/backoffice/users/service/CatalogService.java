@@ -1,9 +1,9 @@
 package cat.corredors.backoffice.users.service;
 
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_CITIES_FOR_POSTAL_CODE;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_LIST_CITIES;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_POSTAL_CODES_FOR_CITY;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Domain.ErrorCodes.ERR_SEARCH_CITIES;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_CITIES_FOR_POSTAL_CODE;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_LIST_CITIES;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_POSTAL_CODES_FOR_CITY;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_SEARCH_CITIES;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import cat.corredors.backoffice.users.crosscutting.BOUsersConstants;
-import cat.corredors.backoffice.users.crosscutting.BOUsersSystemFault;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersSystemFault;
 import cat.corredors.backoffice.users.domain.CodiPostal;
 import cat.corredors.backoffice.users.domain.Municipi;
 import cat.corredors.backoffice.users.repository.CodiPostalRepository;
@@ -42,7 +42,7 @@ public class CatalogService {
 					})
 					.orElse(municipisRepo.findAll(pageWithElements));
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000, "System error querying municipis list",
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying municipis list",
 					e, ERR_LIST_CITIES, e.getMessage());
 		}
 	}
@@ -51,7 +51,7 @@ public class CatalogService {
 		try {
 			return municipisRepo.findByNomContaining(search);
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000, "System error querying municipis list",
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying municipis list",
 					e, ERR_SEARCH_CITIES, e.getMessage());
 		}
 	}
@@ -65,7 +65,7 @@ public class CatalogService {
 					.collect(Collectors.toList());
 
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000, "System error querying municipis list",
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying municipis list",
 					e, ERR_CITIES_FOR_POSTAL_CODE, e.getMessage());
 		}
 	}
@@ -74,7 +74,7 @@ public class CatalogService {
 		try {
 			return codiPostalRepo.findByMunicipiIgnoreCase(municipi);
 		} catch (DataAccessException e) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_000, "System error querying postal codes",
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying postal codes",
 					e, ERR_POSTAL_CODES_FOR_CITY, e.getMessage());
 		}
 	}	

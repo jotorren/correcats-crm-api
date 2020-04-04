@@ -1,6 +1,6 @@
 package cat.corredors.backoffice.users.crosscutting;
 
-public interface LogMessages {
+public interface BackOfficeLogMessages {
 	
 	String ANY_BEAN_VALIDATOR_IGNORE_FIELD = "log.any.bean.validator.ignore.field";
 	

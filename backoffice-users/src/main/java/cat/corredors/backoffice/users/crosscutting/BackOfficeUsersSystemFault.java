@@ -1,6 +1,6 @@
 package cat.corredors.backoffice.users.crosscutting;
 
-public class BOUsersSystemFault extends RuntimeException {
+public class BackOfficeUsersSystemFault extends RuntimeException {
 	private static final long serialVersionUID = 8004656699382290053L;
 
 	private Object[] params;
@@ -15,7 +15,7 @@ public class BOUsersSystemFault extends RuntimeException {
 	 * @param message
 	 *            default message
 	 */
-	public BOUsersSystemFault(int code, String message) {
+	public BackOfficeUsersSystemFault(int code, String message) {
 		super(message);
 		this.code = code;
 	}
@@ -31,7 +31,7 @@ public class BOUsersSystemFault extends RuntimeException {
 	 * @param cause
 	 *            captured exception, error origin
 	 */
-	public BOUsersSystemFault(int code, String message, Throwable cause) {
+	public BackOfficeUsersSystemFault(int code, String message, Throwable cause) {
 		super(message, cause);
 		this.code = code;
 	}
@@ -48,7 +48,7 @@ public class BOUsersSystemFault extends RuntimeException {
 	 * @param params
 	 *            the array of parameters to build the corresponding message
 	 */
-	public BOUsersSystemFault(int code, String message, Object... params) {
+	public BackOfficeUsersSystemFault(int code, String message, Object... params) {
 		super(message);
 		this.code = code;
 		this.params = params;
@@ -68,7 +68,7 @@ public class BOUsersSystemFault extends RuntimeException {
 	 * @param params
 	 *            the array of parameters to build the corresponding message
 	 */
-	public BOUsersSystemFault(int code, String message, Throwable cause, Object... params) {
+	public BackOfficeUsersSystemFault(int code, String message, Throwable cause, Object... params) {
 		super(message, cause);
 		this.code = code;
 		this.params = params;

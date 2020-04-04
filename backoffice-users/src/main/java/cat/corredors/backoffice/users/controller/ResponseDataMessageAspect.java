@@ -11,7 +11,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import cat.corredors.backoffice.users.crosscutting.BOUsersConstants;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants;
 
 @Aspect
 @Component
@@ -53,7 +53,7 @@ public class ResponseDataMessageAspect {
 
 		if (null != respBean) {
 			respBean.setMessage(
-					messageSource.getMessage(BOUsersConstants.REST.InfoCodes.PREFIX + respBean.getCode(), respBean.getMessageParams(), (String) null, Locale.getDefault()));
+					messageSource.getMessage(BackOfficeUsersConstants.REST.InfoCodes.PREFIX + respBean.getCode(), respBean.getMessageParams(), (String) null, Locale.getDefault()));
 		}
 
 		return result;

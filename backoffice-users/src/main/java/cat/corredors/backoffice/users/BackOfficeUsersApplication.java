@@ -8,9 +8,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 
 @SpringBootApplication(exclude = JmxAutoConfiguration.class)
-public class BOUsersApplication {
+public class BackOfficeUsersApplication {
 
 	public static void main(String[] args) throws FileNotFoundException, IOException {
-		SpringApplication.run(BOUsersApplication.class, args);
+		SpringApplication.run(BackOfficeUsersApplication.class, args);
 	}
 }

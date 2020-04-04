@@ -18,10 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
-import cat.corredors.backoffice.users.crosscutting.BOUsersConstants;
-import cat.corredors.backoffice.users.crosscutting.BOUsersSystemFault;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeUsersSystemFault;
 import cat.corredors.backoffice.users.crosscutting.ErrorBean;
-import cat.corredors.backoffice.users.crosscutting.LogMessages;
+import cat.corredors.backoffice.users.crosscutting.BackOfficeLogMessages;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -37,14 +37,14 @@ public class BeanValidator {
 	private int getErrorCode(ConstraintViolation<?> violation) {
 		if (violation.getConstraintDescriptor().getAnnotation().annotationType().equals(NotEmpty.class)
 				|| violation.getConstraintDescriptor().getAnnotation().annotationType().equals(NotNull.class)) {
-			return BOUsersConstants.REST.ErrorCodes.ERR_501;
+			return BackOfficeUsersConstants.REST.ErrorCodes.ERR_501;
 		} else if (violation.getConstraintDescriptor().getAnnotation().annotationType().equals(Pattern.class)) {
-			return BOUsersConstants.REST.ErrorCodes.ERR_502;
+			return BackOfficeUsersConstants.REST.ErrorCodes.ERR_502;
 		} else if (violation.getConstraintDescriptor().getAnnotation().annotationType().equals(Future.class)) {
-			return BOUsersConstants.REST.ErrorCodes.ERR_503;
+			return BackOfficeUsersConstants.REST.ErrorCodes.ERR_503;
 		}
 
-		return BOUsersConstants.REST.ErrorCodes.ERR_501;
+		return BackOfficeUsersConstants.REST.ErrorCodes.ERR_501;
 	}
 
 	public void validate(Object bean, String... exclude) {
@@ -52,7 +52,7 @@ public class BeanValidator {
 		Set<ConstraintViolation<Object>> constraintViolations = jsr380Validator.validate(bean);
 		List<ErrorBean> errors = process(new HashSet<ConstraintViolation<?>>(constraintViolations));
 		if (!errors.isEmpty()) {
-			throw new BOUsersSystemFault(BOUsersConstants.REST.ErrorCodes.ERR_LST, "Validation errors", new Object[] { errors });
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_LST, "Validation errors", new Object[] { errors });
 		}
 	}
 	
@@ -62,12 +62,12 @@ public class BeanValidator {
 		List<ErrorBean> errors = new ArrayList<ErrorBean>();
 		for (ConstraintViolation<?> violation : violations) {
 			if (ignored.contains(violation.getPropertyPath().toString())) {
-				log.debug(messageSource.getMessage(LogMessages.ANY_BEAN_VALIDATOR_IGNORE_FIELD,
+				log.debug(messageSource.getMessage(BackOfficeLogMessages.ANY_BEAN_VALIDATOR_IGNORE_FIELD,
 						new Object[] { violation.getPropertyPath() }, Locale.getDefault()));
 			} else {
 				String message = " -> " + violation.getMessage();
 				int code = getErrorCode(violation);
-				errors.add(new ErrorBean(code, messageSource.getMessage(BOUsersConstants.REST.ErrorCodes.PREFIX + code,
+				errors.add(new ErrorBean(code, messageSource.getMessage(BackOfficeUsersConstants.REST.ErrorCodes.PREFIX + code,
 						new Object[] { violation.getPropertyPath().toString(), message }, Locale.getDefault())));
 			}
 		}

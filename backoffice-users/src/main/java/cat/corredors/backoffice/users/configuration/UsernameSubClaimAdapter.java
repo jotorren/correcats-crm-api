@@ -1,9 +1,9 @@
 package cat.corredors.backoffice.users.configuration;
 
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Security.OIDC.SUBJECT_CLAIM;
-import static cat.corredors.backoffice.users.crosscutting.BOUsersConstants.Security.OIDC.USER_CLAIM;
-import static cat.corredors.backoffice.users.crosscutting.LogMessages.ANY_SECURITY_CLAIM_FIELD_NOT_FOUND;
-import static cat.corredors.backoffice.users.crosscutting.LogMessages.ANY_SECURITY_CONTEXT_USER;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.OIDC.SUBJECT_CLAIM;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.OIDC.USER_CLAIM;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeLogMessages.ANY_SECURITY_CLAIM_FIELD_NOT_FOUND;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeLogMessages.ANY_SECURITY_CONTEXT_USER;
 
 import java.util.Collections;
 import java.util.Locale;
