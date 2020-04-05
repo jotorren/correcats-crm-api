@@ -1,7 +1,6 @@
 package cat.corredors.backoffice.users.controller;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -107,7 +106,7 @@ public interface MemberApi {
     		@NotNull int limit,
     		Optional<String> sortBy,
     		Optional<Boolean> asc   		
-    		) throws ParseException;
+    		);
 	
 	@PostMapping(
 			value = "/export", 
@@ -121,7 +120,7 @@ public interface MemberApi {
     		Optional<String> logicalOperator,
     		Optional<String> sortBy,
     		Optional<Boolean> asc    		
-    		) throws IOException, MissingServletRequestParameterException, ParseException;
+    		) throws IOException, MissingServletRequestParameterException;
 	
 	@GetMapping(
 			value = "/export/live", 

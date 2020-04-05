@@ -8,8 +8,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -115,13 +113,13 @@ public class MemberRestController implements MemberApi {
 			@RequestParam int offset, 
 			@RequestParam int limit, 
 			@RequestParam Optional<String> sortBy,
-			@RequestParam Optional<Boolean> asc) throws ParseException {
-		// TODO Remove ParseException throw
+			@RequestParam Optional<Boolean> asc) {
 		
-		// TODO Move convert to HTTPMessageConverter
-		convert(search);
+		for (SearchCriteria sc: search) {
+			beanValidator.validate(sc);
+		}
+		
 		Page<Map<String, Object>> page = service.findAll(fields, search, logicalOperator.orElse(null), offset, limit, sortBy, asc.orElse(true));
-
 		PageBean<Map<String, Object>> pageBean = new PageBean<Map<String, Object>>();
 		pageBean.setOffset(offset);
 		pageBean.setLimit(limit);
@@ -139,9 +137,7 @@ public class MemberRestController implements MemberApi {
 			@RequestBody Optional<List<SearchCriteria>> search,
 			@RequestParam Optional<String> logicalOperator,
 			@RequestParam Optional<String> sortBy, @RequestParam Optional<Boolean> asc)
-			throws IOException, MissingServletRequestParameterException, ParseException {
-		// TODO Remove ParseException throw
-		
+			throws IOException, MissingServletRequestParameterException {
 		String fileName = DOWNLOAD_FILE_NAME + "-" + System.currentTimeMillis();
 		
 		switch(queryType) {
@@ -155,9 +151,11 @@ public class MemberRestController implements MemberApi {
 				if (!search.isPresent()) {
 					throw new MissingServletRequestParameterException("search", "List<SearchCriteria>");
 				}
-				// TODO Move convert to HTTPMessageConverter
-				convert(search.get());
-				service.export(fields.get(), search.get(), logicalOperator.orElse(null), sortBy, asc.orElse(true), fileName);
+				List<SearchCriteria> criteria = search.get();
+				for (SearchCriteria sc: criteria) {
+					beanValidator.validate(sc);
+				}
+				service.export(fields.get(), criteria, logicalOperator.orElse(null), sortBy, asc.orElse(true), fileName);
 				break;
 			case 2:
 				service.exportInconsistentEmails(fileName);
@@ -245,19 +243,5 @@ public class MemberRestController implements MemberApi {
 		Associada entity = service.create(data);
 		return ResponseEntity.created(internalIdToURI.apply(entity.getId()))
 				.body(new ResponseData<String>(INF_001, entity.getId()));
-	}
-	
-	private static void convert(List<SearchCriteria> scList) throws ParseException {
-    	for (SearchCriteria sc:scList) {
-			if (sc.getKey().equals("dataAlta") || sc.getKey().equals("dataBaixa")) {
-				// TODO Move date format to a constant or configuration property
-				SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-				sc.setValue(formatter.parse((String) sc.getValue()));
-			} else if (sc.getKey().equals("activat")) {
-				sc.setValue(Boolean.valueOf((String) sc.getValue()));
-			} else if (sc.getKey().equals("quotaAlta")) {
-				sc.setValue(Float.valueOf((String) sc.getValue()));
-			} 
-    	}		
 	}
 }
