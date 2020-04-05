@@ -110,7 +110,8 @@ public class MemberRestController implements MemberApi {
 	@Override
 	public ResponseEntity<ResponseData<PageBean<Map<String, Object>>>> search(
 			@RequestParam List<String> fields,
-			@RequestBody List<SearchCriteria> search, 
+			@RequestBody List<SearchCriteria> search,
+			@RequestParam Optional<String> logicalOperator,
 			@RequestParam int offset, 
 			@RequestParam int limit, 
 			@RequestParam Optional<String> sortBy,
@@ -119,7 +120,7 @@ public class MemberRestController implements MemberApi {
 		
 		// TODO Move convert to HTTPMessageConverter
 		convert(search);
-		Page<Map<String, Object>> page = service.findAll(fields, search, offset, limit, sortBy, asc.orElse(true));
+		Page<Map<String, Object>> page = service.findAll(fields, search, logicalOperator.orElse(null), offset, limit, sortBy, asc.orElse(true));
 
 		PageBean<Map<String, Object>> pageBean = new PageBean<Map<String, Object>>();
 		pageBean.setOffset(offset);
@@ -136,6 +137,7 @@ public class MemberRestController implements MemberApi {
 			@RequestParam int queryType,
 			@RequestParam Optional<List<String>> fields,
 			@RequestBody Optional<List<SearchCriteria>> search,
+			@RequestParam Optional<String> logicalOperator,
 			@RequestParam Optional<String> sortBy, @RequestParam Optional<Boolean> asc)
 			throws IOException, MissingServletRequestParameterException, ParseException {
 		// TODO Remove ParseException throw
@@ -144,7 +146,7 @@ public class MemberRestController implements MemberApi {
 		
 		switch(queryType) {
 			case 0:
-				service.export(fields.get(), Collections.emptyList(), sortBy, asc.orElse(true), fileName);
+				service.export(fields.get(), Collections.emptyList(), null, sortBy, asc.orElse(true), fileName);
 				break;
 			case 1:
 				if (!fields.isPresent()) {
@@ -155,7 +157,7 @@ public class MemberRestController implements MemberApi {
 				}
 				// TODO Move convert to HTTPMessageConverter
 				convert(search.get());
-				service.export(fields.get(), search.get(), sortBy, asc.orElse(true), fileName);
+				service.export(fields.get(), search.get(), logicalOperator.orElse(null), sortBy, asc.orElse(true), fileName);
 				break;
 			case 2:
 				service.exportInconsistentEmails(fileName);

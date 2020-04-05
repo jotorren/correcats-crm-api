@@ -102,10 +102,11 @@ public interface MemberApi {
 	ResponseEntity<ResponseData<PageBean<Map<String, Object>>>> search(
 			@NotNull List<String> fields,
 			@NotNull List<SearchCriteria> search,
-    		@ApiParam(value = "List offset", required = true) @NotNull int offset, 
-    		@ApiParam(value = "Page max number of elements", required = true) @NotNull int limit,
-    		@ApiParam(value = "Field to sort results", required = false) Optional<String> sortBy,
-    		@ApiParam(value = "Sort direction", required = false) Optional<Boolean> asc   		
+			Optional<String> logicalOperator,
+    		@NotNull int offset, 
+    		@NotNull int limit,
+    		Optional<String> sortBy,
+    		Optional<Boolean> asc   		
     		) throws IOException, ParseException;
 	
 	@PostMapping(
@@ -117,8 +118,9 @@ public interface MemberApi {
 			@NotNull int queryType,
 			Optional<List<String>> fields,
     		Optional<List<SearchCriteria>> search,
-    		@ApiParam(value = "Field to sort results", required = false) Optional<String> sortBy,
-    		@ApiParam(value = "Sort direction", required = false) Optional<Boolean> asc    		
+    		Optional<String> logicalOperator,
+    		Optional<String> sortBy,
+    		Optional<Boolean> asc    		
     		) throws IOException, MissingServletRequestParameterException, ParseException;
 	
 	@GetMapping(

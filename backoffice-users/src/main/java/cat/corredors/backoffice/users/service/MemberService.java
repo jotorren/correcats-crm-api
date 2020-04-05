@@ -181,7 +181,7 @@ public class MemberService {
 		}
 	}
 	
-	public Page<Map<String, Object>> findAll(List<String> fields, List<SearchCriteria> search, 
+	public Page<Map<String, Object>> findAll(List<String> fields, List<SearchCriteria> search, String logicalOperator,
 			int offset, int limit, Optional<String> sortBy, boolean asc) {
 		try {
 			int page = offset/limit;
@@ -192,7 +192,7 @@ public class MemberService {
 
 			AssociadaSpecificationsBuilder builder = new AssociadaSpecificationsBuilder();
 			for (SearchCriteria sc:search) {
-				builder.with(new SpecSearchCriteria(sc.getKey(), sc.getOperation(), sc.getValue()));
+				builder.with(new SpecSearchCriteria(logicalOperator, sc.getKey(), sc.getOperation(), sc.getValue()));
 			}
 			
 			return repository.findAll(builder.build(), pageWithElements)
@@ -204,21 +204,8 @@ public class MemberService {
 		}
 	}
 
-//	public List<Map<String, Object>> findAll(List<String> fields, Optional<String> sortBy, boolean asc) {
-//		try {
-//			Sort sorter = sortBy
-//					.map(column -> asc?Sort.by(column).ascending():Sort.by(column).descending())
-//					.orElse(Sort.by(fields.get(0)).ascending());
-//
-//			return selectFields(repository.findAll(sorter), fields);
-//			
-//		} catch (DataAccessException e) {
-//			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
-//					e, ERR_LIST_MEMBERS, e.getMessage());
-//		}
-//	}
-
-	public List<Map<String, Object>> findAll(List<String> fields, List<SearchCriteria> search, Optional<String> sortBy, boolean asc) {
+	public List<Map<String, Object>> findAll(List<String> fields, List<SearchCriteria> search, String logicalOperator, 
+			Optional<String> sortBy, boolean asc) {
 		try {
 			Sort sorter = sortBy
 					.map(column -> asc?Sort.by(column).ascending():Sort.by(column).descending())
@@ -226,7 +213,7 @@ public class MemberService {
 
 			AssociadaSpecificationsBuilder builder = new AssociadaSpecificationsBuilder();
 			for (SearchCriteria sc:search) {
-				builder.with(new SpecSearchCriteria(sc.getKey(), sc.getOperation(), sc.getValue()));
+				builder.with(new SpecSearchCriteria(logicalOperator, sc.getKey(), sc.getOperation(), sc.getValue()));
 			}
 			
 			return selectFields(repository.findAll(builder.build(), sorter), fields);
@@ -303,19 +290,11 @@ public class MemberService {
 			.collect(Collectors.toList()), fileName);
 	}
 	
-//	@Async
-//	public void export(List<String> fields, Optional<String> sortBy, boolean asc, String fileName) {
-//		
-//		export(findAll(fields, sortBy, asc)
-//			.stream()
-//			.map(data -> data.values())
-//			.collect(Collectors.toList()), fileName);
-//	}
-
 	@Async
-	public void export(List<String> fields, List<SearchCriteria> search, Optional<String> sortBy, boolean asc, String fileName) {
+	public void export(List<String> fields, List<SearchCriteria> search, String logicalOperator, 
+			Optional<String> sortBy, boolean asc, String fileName) {
 		
-		export(findAll(fields, search, sortBy, asc)
+		export(findAll(fields, search, logicalOperator, sortBy, asc)
 			.stream()
 			.map(data -> data.values())
 			.collect(Collectors.toList()), fileName);
