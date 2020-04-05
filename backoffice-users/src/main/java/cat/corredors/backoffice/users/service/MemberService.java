@@ -6,8 +6,11 @@ import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstan
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_CHECK_NICK;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_CREATE_MEMBER;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_DELETE_MEMBER;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_EMAIL_INCONSISTENCIES;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_FIND_MEMBER;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_LIST_MEMBERS;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_NICK_EMAIL_VERIFICATION;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_NICK_INCONSISTENCIES;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_REGISTER_MEMBER;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_UNREGISTER_MEMBER;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.ErrorCodes.ERR_018;
@@ -20,6 +23,8 @@ import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -28,6 +33,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
@@ -57,15 +63,17 @@ import cat.corredors.backoffice.users.crosscutting.MemberStillRegisteredExceptio
 import cat.corredors.backoffice.users.domain.Associada;
 import cat.corredors.backoffice.users.domain.AssociadaForm;
 import cat.corredors.backoffice.users.domain.AssociadaListItem;
+import cat.corredors.backoffice.users.domain.SearchCriteria;
+import cat.corredors.backoffice.users.domain.SearchOperation;
 import cat.corredors.backoffice.users.repository.AssociadaRepository;
 import cat.corredors.backoffice.users.repository.AssociadaSpecificationsBuilder;
 import cat.corredors.backoffice.users.repository.JoomlaRepository;
-import cat.corredors.backoffice.users.repository.SearchOperation;
 import cat.corredors.backoffice.users.repository.SpecSearchCriteria;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
+	
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -83,68 +91,33 @@ public class MemberService {
 	public void init() {
 		sharedFlux =  Flux.create(publisher).share().log(null, Level.ALL);
 	}
-	
-	public Page<Object> findAll(int offset, int limit, Optional<String> search, Optional<String> sortBy, boolean asc) {
-		try {
-			int page = offset/limit;
-			Pageable pageWithElements = sortBy
-					.map(column -> asc?Sort.by(column).ascending():Sort.by(column).descending())
-					.map(sort -> PageRequest.of(page, limit, sort))
-					.orElse(PageRequest.of(page, limit, Sort.by("cognoms").ascending()));
 
-			return search
-					.map(value -> {
-						AssociadaSpecificationsBuilder builder = new AssociadaSpecificationsBuilder();
-						return repository.findAll(builder
-							.with(new SpecSearchCriteria("cognoms", SearchOperation.CONTAINS, value))
-							.with(new SpecSearchCriteria("'","nom", SearchOperation.CONTAINS, value))
-							.with(new SpecSearchCriteria("'","nick", SearchOperation.CONTAINS, value))
-							.with(new SpecSearchCriteria("activat", SearchOperation.EQUALITY, true))
-							.build(), pageWithElements);
-					})
-					.orElse(repository.findByActivatTrue(pageWithElements))
-					.map(all -> {
-						AssociadaListItem item = new AssociadaListItem();
-						BeanUtils.copyProperties(all, item);
-						return item;						
-					});
-		} catch (DataAccessException e) {
-			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
-					e, ERR_LIST_MEMBERS, e.getMessage());
+	private List<Map<String, Object>> selectFields(Iterable<Associada> resultSet, List<String> fields) {
+		List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
+		
+		for (Associada associada:resultSet) {			
+			res.add(selectFields(associada, fields));
 		}
+		
+		return res;		
 	}
 
-	public List<Map<String, Object>> findAll(List<String> fields, Optional<String> sortBy, boolean asc) {
-		try {
-			Sort sorter = sortBy
-					.map(column -> asc?Sort.by(column).ascending():Sort.by(column).descending())
-					.orElse(Sort.by(fields.get(0)).ascending());
+	private Map<String, Object> selectFields(Associada associada, List<String> fields) {
 
-			List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
-			for (Associada ass:repository.findAll(sorter)) {
-				Map<String, Object> data = new LinkedHashMap<String, Object>();
-			
-				for (String field:fields) {
-					try {
-						data.put(field, org.apache.commons.beanutils.BeanUtils.getProperty(ass, field));
-					} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-						log.error(messageSource.getMessage(MEMBER_FIELDS_SELECTION_ERROR, new Object[] { }, Locale.getDefault()), e);
-					}
-				}
-				
-				res.add(data);
+		Map<String, Object> data = new LinkedHashMap<String, Object>();
+	
+		for (String field:fields) {
+			try {
+				data.put(field, org.apache.commons.beanutils.BeanUtils.getProperty(associada, field));
+			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+				log.error(messageSource.getMessage(MEMBER_FIELDS_SELECTION_ERROR, new Object[] { }, Locale.getDefault()), e);
 			}
-			
-			return res;
-			
-		} catch (DataAccessException e) {
-			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
-					e, ERR_LIST_MEMBERS, e.getMessage());
 		}
+		
+		return data;
 	}
 	
-	@Async
-	public void export(List<String> fields, Optional<String> sortBy, boolean asc, String fileName) {
+	private void export(List<Collection<Object>> resultSet, String fileName) {
 		
 		OutputStreamWriter fw = null;
 		CSVPrinter printer = null;
@@ -154,8 +127,8 @@ public class MemberService {
 					StandardCharsets.ISO_8859_1);
 			printer = new CSVPrinter(fw, CSVFormat.DEFAULT);
 			printer.printRecord("SEP=,");
-			for (Map<String, Object> data:findAll(fields, sortBy, asc)){
-				printer.printRecord(data.values());
+			for (Collection<Object> data:resultSet){
+				printer.printRecord(data);
 			}
 			publisher.push(fileName);
 		} catch (IOException e) {
@@ -178,6 +151,176 @@ public class MemberService {
 		}
 	}
 
+	public Page<AssociadaListItem> findAll(int offset, int limit, Optional<String> search, Optional<String> sortBy, boolean asc) {
+		try {
+			int page = offset/limit;
+			Pageable pageWithElements = sortBy
+					.map(column -> asc?Sort.by(column).ascending():Sort.by(column).descending())
+					.map(sort -> PageRequest.of(page, limit, sort))
+					.orElse(PageRequest.of(page, limit, Sort.by("cognoms").ascending()));
+
+			return search
+					.map(value -> {
+						AssociadaSpecificationsBuilder builder = new AssociadaSpecificationsBuilder();
+						return repository.findAll(builder
+							.with(new SpecSearchCriteria("cognoms", SearchOperation.CONTAINS, value))
+							.with(new SpecSearchCriteria("'","nom", SearchOperation.CONTAINS, value))
+							.with(new SpecSearchCriteria("'","nick", SearchOperation.CONTAINS, value))
+							.with(new SpecSearchCriteria("activat", SearchOperation.EQ, true))
+							.build(), pageWithElements);
+					})
+					.orElse(repository.findByActivatTrue(pageWithElements))
+					.map(all -> {
+						AssociadaListItem item = new AssociadaListItem();
+						BeanUtils.copyProperties(all, item);
+						return item;						
+					});
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
+					e, ERR_LIST_MEMBERS, e.getMessage());
+		}
+	}
+	
+	public Page<Map<String, Object>> findAll(List<String> fields, List<SearchCriteria> search, 
+			int offset, int limit, Optional<String> sortBy, boolean asc) {
+		try {
+			int page = offset/limit;
+			Pageable pageWithElements = sortBy
+					.map(column -> asc?Sort.by(column).ascending():Sort.by(column).descending())
+					.map(sort -> PageRequest.of(page, limit, sort))
+					.orElse(PageRequest.of(page, limit, Sort.by(fields.get(0)).ascending()));
+
+			AssociadaSpecificationsBuilder builder = new AssociadaSpecificationsBuilder();
+			for (SearchCriteria sc:search) {
+				builder.with(new SpecSearchCriteria(sc.getKey(), sc.getOperation(), sc.getValue()));
+			}
+			
+			return repository.findAll(builder.build(), pageWithElements)
+					.map(associada -> selectFields(associada, fields));
+			
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
+					e, ERR_LIST_MEMBERS, e.getMessage());
+		}
+	}
+
+//	public List<Map<String, Object>> findAll(List<String> fields, Optional<String> sortBy, boolean asc) {
+//		try {
+//			Sort sorter = sortBy
+//					.map(column -> asc?Sort.by(column).ascending():Sort.by(column).descending())
+//					.orElse(Sort.by(fields.get(0)).ascending());
+//
+//			return selectFields(repository.findAll(sorter), fields);
+//			
+//		} catch (DataAccessException e) {
+//			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
+//					e, ERR_LIST_MEMBERS, e.getMessage());
+//		}
+//	}
+
+	public List<Map<String, Object>> findAll(List<String> fields, List<SearchCriteria> search, Optional<String> sortBy, boolean asc) {
+		try {
+			Sort sorter = sortBy
+					.map(column -> asc?Sort.by(column).ascending():Sort.by(column).descending())
+					.orElse(Sort.by(fields.get(0)).ascending());
+
+			AssociadaSpecificationsBuilder builder = new AssociadaSpecificationsBuilder();
+			for (SearchCriteria sc:search) {
+				builder.with(new SpecSearchCriteria(sc.getKey(), sc.getOperation(), sc.getValue()));
+			}
+			
+			return selectFields(repository.findAll(builder.build(), sorter), fields);
+			
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error querying members list",
+					e, ERR_LIST_MEMBERS, e.getMessage());
+		}
+	}
+	
+	public Map<String, Pair<String, String>> findInconsistentEmails() {
+		try {
+			Map<String, Pair<String, String>> list = new HashMap<String, Pair<String, String>>();
+			
+			repository.findAll(Sort.by("nick").ascending()).forEach(associada -> {
+				joomlaRepository.getJoomlaEmail(associada.getNick())
+					.map(joomlaEmail -> {
+						if (!associada.getEmail().equalsIgnoreCase(joomlaEmail)) {
+							list.put(associada.getNick(), Pair.of(associada.getEmail(), joomlaEmail));
+						}					
+						return joomlaEmail;
+					})
+					.orElseGet(() -> {
+						list.put(associada.getNick(), Pair.of(associada.getEmail(), "notfound"));
+						return null;
+					});
+			});
+			
+			return list;
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error checking emails inconsistencies",
+					e, ERR_EMAIL_INCONSISTENCIES, e.getMessage());
+		}
+	}	
+
+	public Map<String, Pair<String, String>> findInconsistentNicks() {
+		try {
+			Map<String, Pair<String, String>> list = new HashMap<String, Pair<String, String>>();
+			
+			repository.findAll(Sort.by("nick").ascending()).forEach(associada -> {
+				joomlaRepository.getJoomlaName(associada.getEmail())
+					.ifPresent(joomlaName -> {
+						if (!associada.getNick().equalsIgnoreCase(joomlaName)) {
+							list.put(associada.getEmail(), Pair.of(associada.getNick(), joomlaName));
+						}
+					});
+			});
+			
+			return list;
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error checking nicks inconsistencies",
+					e, ERR_NICK_INCONSISTENCIES, e.getMessage());
+		}
+	}
+		
+	@Async
+	public void exportInconsistentEmails(String fileName) {
+		export(findInconsistentEmails().entrySet()
+			.stream()
+			.map(data -> {
+				return Arrays.<Object>asList(data.getKey(), data.getValue().getFirst(), data.getValue().getSecond());
+			})
+			.collect(Collectors.toList()), fileName);
+	}
+
+
+	@Async
+	public void exportInconsistentNicks(String fileName) {
+		export(findInconsistentNicks().entrySet()
+			.stream()
+			.map(data -> {
+				return Arrays.<Object>asList(data.getKey(), data.getValue().getFirst(), data.getValue().getSecond());
+			})
+			.collect(Collectors.toList()), fileName);
+	}
+	
+//	@Async
+//	public void export(List<String> fields, Optional<String> sortBy, boolean asc, String fileName) {
+//		
+//		export(findAll(fields, sortBy, asc)
+//			.stream()
+//			.map(data -> data.values())
+//			.collect(Collectors.toList()), fileName);
+//	}
+
+	@Async
+	public void export(List<String> fields, List<SearchCriteria> search, Optional<String> sortBy, boolean asc, String fileName) {
+		
+		export(findAll(fields, search, sortBy, asc)
+			.stream()
+			.map(data -> data.values())
+			.collect(Collectors.toList()), fileName);
+	}
+	
 	public Flux<String> liveUpdates() {
 		log.info("Connecting to live updates ");
 		return sharedFlux;
@@ -226,18 +369,23 @@ public class MemberService {
 
 	public List<String> checkConsistency(String nick, String email) throws BackOfficeUserNotFoundException {
 		
-		List<String> failed = new ArrayList<String>();
+		try {
+			List<String> failed = new ArrayList<String>();
+					
+			joomlaRepository.getJoomlaEmail(nick).map(joomlaEmail -> {
+				if (!email.equalsIgnoreCase(joomlaEmail)) {
+					failed.add(messageSource.getMessage(PREFIX + ERR_018, new Object[] { nick, joomlaEmail }, Locale.getDefault()));
+				}
 				
-		joomlaRepository.getJoomlaEmail(nick).map(joomlaEmail -> {
-			if (!email.equalsIgnoreCase(joomlaEmail)) {
-				failed.add(messageSource.getMessage(PREFIX + ERR_018, new Object[] { nick, joomlaEmail }, Locale.getDefault()));
-			}
+				return joomlaEmail;
+			})
+			.orElseThrow(() -> new BackOfficeUserNotFoundException(nick));
 			
-			return joomlaEmail;
-		})
-		.orElseThrow(() -> new BackOfficeUserNotFoundException(nick));
-		
-		return failed;
+			return failed;
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
+					String.format("System error verifying nick/email %s", email), e, ERR_NICK_EMAIL_VERIFICATION, e.getMessage());
+		}
 	}
 	
 	@Transactional
@@ -356,40 +504,5 @@ public class MemberService {
 					String.format("System error registering new member %s", data.getNick()), e, ERR_CREATE_MEMBER,
 					e.getMessage());
 		}
-	}
-	
-	public Map<String, Pair<String, String>> findInconsistentEmails() {
-		Map<String, Pair<String, String>> list = new HashMap<String, Pair<String, String>>();
-		
-		repository.findAll(Sort.by("nick").ascending()).forEach(associada -> {
-			joomlaRepository.getJoomlaEmail(associada.getNick())
-				.map(joomlaEmail -> {
-					if (!associada.getEmail().equalsIgnoreCase(joomlaEmail)) {
-						list.put(associada.getNick(), Pair.of(associada.getEmail(), joomlaEmail));
-					}					
-					return joomlaEmail;
-				})
-				.orElseGet(() -> {
-					list.put(associada.getNick(), Pair.of(associada.getEmail(), "notfound"));
-					return null;
-				});
-		});
-		
-		return list;
-	}	
-
-	public Map<String, Pair<String, String>> findInconsistentNicks() {
-		Map<String, Pair<String, String>> list = new HashMap<String, Pair<String, String>>();
-		
-		repository.findAll(Sort.by("nick").ascending()).forEach(associada -> {
-			joomlaRepository.getJoomlaName(associada.getEmail())
-				.ifPresent(joomlaName -> {
-					if (!associada.getNick().equalsIgnoreCase(joomlaName)) {
-						list.put(associada.getEmail(), Pair.of(associada.getNick(), joomlaName));
-					}
-				});
-		});
-		
-		return list;
 	}
 }

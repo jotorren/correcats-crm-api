@@ -16,6 +16,9 @@
 			<column name="COGNOMS" type="VARCHAR(255)">
 				<constraints nullable="false" />
 			</column>
+			<column name="SEXE" type="VARCHAR(1)">
+				<constraints nullable="false" />
+			</column>
 			<column name="NICK" type="VARCHAR(32)">
 				<constraints nullable="false" unique="true" />
 			</column>

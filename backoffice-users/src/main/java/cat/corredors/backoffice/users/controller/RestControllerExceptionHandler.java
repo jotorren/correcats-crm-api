@@ -15,6 +15,7 @@ import javax.validation.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -54,7 +55,7 @@ public class RestControllerExceptionHandler {
    public ResponseError handleMissinParameterException(final HttpServletRequest request,
            final HttpServletResponse response, final MissingServletRequestParameterException e) {
 	   String err = messageSource.getMessage(BackOfficeUsersConstants.REST.ErrorCodes.PREFIX + ERR_501,
-               new Object[] { e.getMessage() }, e.getMessage(), Locale.getDefault());
+               new Object[] { e.getParameterName() }, e.getMessage(), Locale.getDefault());
        log.error(err, e);
 	   return new ResponseError(ERR_501, err);
    }
@@ -64,7 +65,17 @@ public class RestControllerExceptionHandler {
    public ResponseError handleTypeMismatchException(final HttpServletRequest request,
            final HttpServletResponse response, final MethodArgumentTypeMismatchException e) {
 	   String err = messageSource.getMessage(BackOfficeUsersConstants.REST.ErrorCodes.PREFIX + ERR_501,
-               new Object[] { e.getMostSpecificCause().getMessage() }, e.getMessage(), Locale.getDefault());
+               new Object[] { e.getName() }, e.getMessage(), Locale.getDefault());
+       log.error(err, e);
+	   return new ResponseError(ERR_501, err);
+   }
+
+   @ExceptionHandler(HttpMessageNotReadableException.class)
+   @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+   public ResponseError handleBodyNotReadableException(final HttpServletRequest request,
+           final HttpServletResponse response, final HttpMessageNotReadableException e) {
+	   String err = messageSource.getMessage(BackOfficeUsersConstants.REST.ErrorCodes.PREFIX + ERR_501,
+               new Object[] { "Request body" }, e.getMessage(), Locale.getDefault());
        log.error(err, e);
 	   return new ResponseError(ERR_501, err);
    }
@@ -94,7 +105,7 @@ public class RestControllerExceptionHandler {
 		} else {
 			String err =  messageSource
 		               .getMessage(BackOfficeUsersConstants.REST.ErrorCodes.PREFIX + e.getCode(), e.getParameters(), e.getMessage(), Locale.getDefault());
-			log.error(err);
+			log.error(err, e);
 			return new ResponseError(e.getCode(), err);
 		}
    }

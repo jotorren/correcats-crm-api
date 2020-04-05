@@ -28,6 +28,9 @@ public class Associada {
 	
 	@Column(name = "COGNOMS", nullable = false)
 	private String cognoms;
+
+	@Column(name = "SEXE", nullable = false)
+	private String sexe;
 	
 	@Column(name = "NICK", nullable = false, unique = true)
 	private String nick;

@@ -1,5 +1,6 @@
 package cat.corredors.backoffice.users.repository;
 
+import cat.corredors.backoffice.users.domain.SearchOperation;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
@@ -28,7 +29,7 @@ public class SpecSearchCriteria {
     public SpecSearchCriteria(String key, String operation, String prefix, String value, String suffix) {
         SearchOperation op = SearchOperation.getSimpleOperation(operation.charAt(0));
         if (op != null) {
-            if (op == SearchOperation.EQUALITY) { // the operation may be complex operation
+            if (op == SearchOperation.EQ) { // the operation may be complex operation
                 final boolean startWithAsterisk = prefix != null && prefix.contains(SearchOperation.ZERO_OR_MORE_REGEX);
                 final boolean endWithAsterisk = suffix != null && suffix.contains(SearchOperation.ZERO_OR_MORE_REGEX);
 

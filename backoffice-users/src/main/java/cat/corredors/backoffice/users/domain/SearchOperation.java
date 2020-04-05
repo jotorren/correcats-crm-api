@@ -1,9 +1,9 @@
-package cat.corredors.backoffice.users.repository;
+package cat.corredors.backoffice.users.domain;
 
 public enum SearchOperation {
-	EQUALITY, NEGATION, GREATER_THAN, LESS_THAN, LIKE, STARTS_WITH, ENDS_WITH, CONTAINS;
+	EQ, IN, NOT, GT, LT, GTE, LTE, LIKE, STARTS_WITH, ENDS_WITH, CONTAINS;
 
-	public static final String[] SIMPLE_OPERATION_SET = { ":", "!", ">", "<", "~" };
+	public static final String[] SIMPLE_OPERATION_SET = { ":", "!", ">", "<", "#", "@", "~" };
 
 	public static final String OR_PREDICATE_FLAG = "'";
 
@@ -20,13 +20,17 @@ public enum SearchOperation {
 	public static SearchOperation getSimpleOperation(final char input) {
 		switch (input) {
 		case ':':
-			return EQUALITY;
+			return EQ;
 		case '!':
-			return NEGATION;
+			return NOT;
 		case '>':
-			return GREATER_THAN;
+			return GT;
 		case '<':
-			return LESS_THAN;
+			return LT;
+		case '#':
+			return GTE;
+		case '@':
+			return LTE;
 		case '~':
 			return LIKE;
 		default:

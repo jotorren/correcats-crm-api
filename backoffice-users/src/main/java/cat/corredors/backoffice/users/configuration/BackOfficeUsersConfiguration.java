@@ -3,18 +3,28 @@ package cat.corredors.backoffice.users.configuration;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.Endpoints.API_BASE;
 
 import java.net.URI;
+import java.util.TimeZone;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+
+import cat.corredors.backoffice.users.controller.StringToSearchOperationEnumConverter;
+import cat.corredors.backoffice.users.controller.StringToSearchOperationEnumDeserializer;
+import cat.corredors.backoffice.users.domain.SearchOperation;
 
 @Configuration
 @EnableConfigurationProperties(BackOfficeUsersConfigurationProperties.class)
@@ -59,6 +69,23 @@ public class BackOfficeUsersConfiguration implements WebMvcConfigurer, AsyncConf
 //        };
 //    }
 
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new StringToSearchOperationEnumConverter());
+    }
+
+	@Bean
+	public ObjectMapper objectMapper() {
+		SimpleModule module = new SimpleModule();
+		module.addDeserializer(SearchOperation.class, new StringToSearchOperationEnumDeserializer());
+		
+		return new ObjectMapper()
+			.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+			.setTimeZone(TimeZone.getDefault())
+			.registerModule(module);
+	}
+	
 	@Override
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

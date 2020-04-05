@@ -1,6 +1,7 @@
 package cat.corredors.backoffice.users.controller;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -12,6 +13,7 @@ import org.springframework.data.util.Pair;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +31,7 @@ import cat.corredors.backoffice.users.crosscutting.MemberStillRegisteredExceptio
 import cat.corredors.backoffice.users.domain.Associada;
 import cat.corredors.backoffice.users.domain.AssociadaForm;
 import cat.corredors.backoffice.users.domain.AssociadaListItem;
+import cat.corredors.backoffice.users.domain.SearchCriteria;
 import io.swagger.annotations.ApiParam;
 import reactor.core.publisher.Flux;
 
@@ -91,26 +94,32 @@ public interface MemberApi {
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<Map<String, Pair<String, String>>>> listInconsistentEmails();
 
-	@GetMapping(
-			value = "/export", 
-			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
-			produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    void export(
-    		HttpServletResponse response,
-    		List<String> fields,
-    		@ApiParam(value = "Field to sort results", required = false) Optional<String> sortBy,
-    		@ApiParam(value = "Sort direction", required = false) Optional<Boolean> asc    		
-    		) throws IOException;
-
-	@GetMapping(
-			value = "/export/async", 
-			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
+	@PostMapping(
+			value = "/search", 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION,
+			consumes = MediaType.APPLICATION_JSON_VALUE,
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	ResponseEntity<ResponseData<String>> exportAsync(
-    		List<String> fields,
+	ResponseEntity<ResponseData<PageBean<Map<String, Object>>>> search(
+			@NotNull List<String> fields,
+			@NotNull List<SearchCriteria> search,
+    		@ApiParam(value = "List offset", required = true) @NotNull int offset, 
+    		@ApiParam(value = "Page max number of elements", required = true) @NotNull int limit,
+    		@ApiParam(value = "Field to sort results", required = false) Optional<String> sortBy,
+    		@ApiParam(value = "Sort direction", required = false) Optional<Boolean> asc   		
+    		) throws IOException, ParseException;
+	
+	@PostMapping(
+			value = "/export", 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION,
+			consumes = MediaType.APPLICATION_JSON_VALUE,
+			produces = MediaType.APPLICATION_JSON_VALUE)
+	ResponseEntity<ResponseData<String>> export(
+			@NotNull int queryType,
+			Optional<List<String>> fields,
+    		Optional<List<SearchCriteria>> search,
     		@ApiParam(value = "Field to sort results", required = false) Optional<String> sortBy,
     		@ApiParam(value = "Sort direction", required = false) Optional<Boolean> asc    		
-    		) throws IOException;
+    		) throws IOException, MissingServletRequestParameterException, ParseException;
 	
 	@GetMapping(
 			value = "/export/live", 
@@ -123,7 +132,7 @@ public interface MemberApi {
 			value = "/export/ready", 
 			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
-	ResponseEntity<ResponseData<Boolean>> isReady(String file);
+	ResponseEntity<ResponseData<Boolean>> isReady(@NotNull String file);
 	
 	@GetMapping(
 			value = "/download", 
@@ -131,7 +140,7 @@ public interface MemberApi {
 			produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     void download(
     		HttpServletResponse response,
-    		String file
+    		@NotNull String file
     ) throws IOException;
 	
 	@PutMapping(

@@ -8,6 +8,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,12 +18,11 @@ import java.util.function.Function;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,6 +38,7 @@ import cat.corredors.backoffice.users.crosscutting.MemberStillRegisteredExceptio
 import cat.corredors.backoffice.users.domain.Associada;
 import cat.corredors.backoffice.users.domain.AssociadaForm;
 import cat.corredors.backoffice.users.domain.AssociadaListItem;
+import cat.corredors.backoffice.users.domain.SearchCriteria;
 import cat.corredors.backoffice.users.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +58,7 @@ public class MemberRestController implements MemberApi {
 	public ResponseEntity<ResponseData<PageBean<AssociadaListItem>>> listMembers(@RequestParam int offset,
 			@RequestParam int limit, @RequestParam Optional<String> search, @RequestParam Optional<String> sortBy,
 			@RequestParam Optional<Boolean> asc) {
-		Page<Object> page = service.findAll(offset, limit, search, sortBy, asc.orElse(true));
+		Page<AssociadaListItem> page = service.findAll(offset, limit, search, sortBy, asc.orElse(true));
 
 		PageBean<AssociadaListItem> pageBean = new PageBean<AssociadaListItem>();
 		pageBean.setOffset(offset);
@@ -103,35 +106,65 @@ public class MemberRestController implements MemberApi {
 				.ok(new ResponseData<Map<String, Pair<String, String>>>(INF_001, service.findInconsistentEmails()));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public void export(HttpServletResponse response, @RequestParam List<String> fields,
-			@RequestParam Optional<String> sortBy, @RequestParam Optional<Boolean> asc) throws IOException {
-
-		response.setContentType(DOWNLOAD_CONTENT_TYPE);
-		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + DOWNLOAD_FILE_NAME + "\"");
-		response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "Content-Disposition");
+	public ResponseEntity<ResponseData<PageBean<Map<String, Object>>>> search(
+			@RequestParam List<String> fields,
+			@RequestBody List<SearchCriteria> search, 
+			@RequestParam int offset, 
+			@RequestParam int limit, 
+			@RequestParam Optional<String> sortBy,
+			@RequestParam Optional<Boolean> asc) throws IOException, ParseException {
+		// TODO Remove ParseException throw
 		
-		CSVPrinter printer = new CSVPrinter(response.getWriter(), CSVFormat.DEFAULT);
-		try {
-			printer.printRecord("SEP=,");
-			for (Map<String, Object> data:service.findAll(fields, sortBy, asc.orElse(true))){
-				printer.printRecord(data.values());
-			}
-		} finally {
-			try {
-				printer.close();
-			} catch (IOException e) {
-				log.warn(e.getMessage());
-			}
-		}
-	}
+		// TODO Move convert to HTTPMessageConverter
+		convert(search);
+		Page<Map<String, Object>> page = service.findAll(fields, search, offset, limit, sortBy, asc.orElse(true));
 
+		PageBean<Map<String, Object>> pageBean = new PageBean<Map<String, Object>>();
+		pageBean.setOffset(offset);
+		pageBean.setLimit(limit);
+		pageBean.setTotal(page.getTotalElements());
+		pageBean.setNumberOfElements(page.getNumberOfElements());
+		pageBean.setIncluded(page.getContent().toArray((Map<String, Object>[]) new Map[page.getNumberOfElements()]));
+
+		return ResponseEntity.ok(new ResponseData<PageBean<Map<String, Object>>>(INF_001, pageBean));
+	}
+	
 	@Override
-	public ResponseEntity<ResponseData<String>> exportAsync(@RequestParam List<String> fields,
+	public ResponseEntity<ResponseData<String>> export(
+			@RequestParam int queryType,
+			@RequestParam Optional<List<String>> fields,
+			@RequestBody Optional<List<SearchCriteria>> search,
 			@RequestParam Optional<String> sortBy, @RequestParam Optional<Boolean> asc)
-			throws IOException {
+			throws IOException, MissingServletRequestParameterException, ParseException {
+		// TODO Remove ParseException throw
+		
 		String fileName = DOWNLOAD_FILE_NAME + "-" + System.currentTimeMillis();
-		service.export(fields, sortBy, asc.orElse(true), fileName);
+		
+		switch(queryType) {
+			case 0:
+				service.export(fields.get(), Collections.emptyList(), sortBy, asc.orElse(true), fileName);
+				break;
+			case 1:
+				if (!fields.isPresent()) {
+					throw new MissingServletRequestParameterException("fields", "List<String>");
+				}
+				if (!search.isPresent()) {
+					throw new MissingServletRequestParameterException("search", "List<SearchCriteria>");
+				}
+				// TODO Move convert to HTTPMessageConverter
+				convert(search.get());
+				service.export(fields.get(), search.get(), sortBy, asc.orElse(true), fileName);
+				break;
+			case 2:
+				service.exportInconsistentEmails(fileName);
+				break;
+			case 3:
+				service.exportInconsistentNicks(fileName);
+				break;
+		}
+		
 		return ResponseEntity.ok(new ResponseData<String>(INF_001, fileName));
 	}
 
@@ -210,5 +243,19 @@ public class MemberRestController implements MemberApi {
 		Associada entity = service.create(data);
 		return ResponseEntity.created(internalIdToURI.apply(entity.getId()))
 				.body(new ResponseData<String>(INF_001, entity.getId()));
+	}
+	
+	private static void convert(List<SearchCriteria> scList) throws ParseException {
+    	for (SearchCriteria sc:scList) {
+			if (sc.getKey().equals("dataAlta") || sc.getKey().equals("dataBaixa")) {
+				// TODO Move date format to a constant or configuration property
+				SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+				sc.setValue(formatter.parse((String) sc.getValue()));
+			} else if (sc.getKey().equals("activat")) {
+				sc.setValue(Boolean.valueOf((String) sc.getValue()));
+			} else if (sc.getKey().equals("quotaAlta")) {
+				sc.setValue(Float.valueOf((String) sc.getValue()));
+			} 
+    	}		
 	}
 }

@@ -1,4 +1,4 @@
-package cat.corredors.backoffice.users.repository;
+package cat.corredors.backoffice.users.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,6 +12,6 @@ import lombok.Setter;
 public class SearchCriteria {
 
 	private String key;
-	private String operation;
+	private SearchOperation operation;
 	private Object value;
 }
