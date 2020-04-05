@@ -107,7 +107,7 @@ public interface MemberApi {
     		@NotNull int limit,
     		Optional<String> sortBy,
     		Optional<Boolean> asc   		
-    		) throws IOException, ParseException;
+    		) throws ParseException;
 	
 	@PostMapping(
 			value = "/export", 

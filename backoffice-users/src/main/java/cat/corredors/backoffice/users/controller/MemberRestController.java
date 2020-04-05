@@ -115,7 +115,7 @@ public class MemberRestController implements MemberApi {
 			@RequestParam int offset, 
 			@RequestParam int limit, 
 			@RequestParam Optional<String> sortBy,
-			@RequestParam Optional<Boolean> asc) throws IOException, ParseException {
+			@RequestParam Optional<Boolean> asc) throws ParseException {
 		// TODO Remove ParseException throw
 		
 		// TODO Move convert to HTTPMessageConverter
