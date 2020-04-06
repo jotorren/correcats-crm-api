@@ -2,12 +2,18 @@ package cat.corredors.backoffice.users.configuration;
 
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.Endpoints.API_BASE;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,12 +33,15 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import cat.corredors.backoffice.users.controller.SearchCriteriaDeSerializer;
 import cat.corredors.backoffice.users.controller.StringToSearchOperationEnumConverter;
 import cat.corredors.backoffice.users.controller.StringToSearchOperationEnumDeserializer;
+import cat.corredors.backoffice.users.domain.Associada;
 import cat.corredors.backoffice.users.domain.SearchCriteria;
 import cat.corredors.backoffice.users.domain.SearchOperation;
+import lombok.extern.slf4j.Slf4j;
 
 @Configuration
 @EnableConfigurationProperties(BackOfficeUsersConfigurationProperties.class)
 @EnableAsync
+@Slf4j
 public class BackOfficeUsersConfiguration implements WebMvcConfigurer, AsyncConfigurer {
 
 //  private static final String DATEFORMAT = "dd/MM/yyyy";
@@ -117,5 +126,20 @@ public class BackOfficeUsersConfiguration implements WebMvcConfigurer, AsyncConf
 	public Function<String, URI> internalIdToURI() {
 		return (String id) -> null == id ? URI.create("")
 				: ServletUriComponentsBuilder.fromCurrentContextPath().path(API_BASE + "/{id}").build(id);
+	}
+	
+	@Bean
+	public Supplier<List<String>> allAssociadaProperties() {
+		return () -> {
+			
+			List<String> all = Collections.emptyList();
+			try {
+				all = BeanUtils.describe(new Associada()).keySet().stream().collect(Collectors.toList());
+			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+				log.error(e.getMessage());
+			}
+			
+			return all;
+		};
 	}
 }

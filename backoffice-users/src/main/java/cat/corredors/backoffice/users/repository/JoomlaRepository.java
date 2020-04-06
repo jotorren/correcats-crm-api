@@ -3,6 +3,10 @@ package cat.corredors.backoffice.users.repository;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -82,6 +86,27 @@ public class JoomlaRepository {
 					}
 				});
 		return joomlaUserId;
+	}
+	
+	public List<Map<String, Object>> findAll() {
+		return jdbcTemplate.query("SELECT u.name, u.username, u.email, u.registerDate FROM e8yu3_users u WHERE EXISTS "
+				+ "(SELECT 1 FROM e8yu3_user_usergroup_map m WHERE m.user_id = u.id AND group_id = 10) ORDER BY name", 
+				new ResultSetExtractor<List<Map<String, Object>>>() {
+					public List<Map<String, Object>> extractData(ResultSet resultSet) throws SQLException, DataAccessException {
+						List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
+						
+						while (resultSet.next()) {
+							Map<String, Object> user = new LinkedHashMap<String, Object>();
+							
+							for (int i=1; i<=resultSet.getMetaData().getColumnCount(); i++) {
+								user.put(resultSet.getMetaData().getColumnName(i), resultSet.getString(i));
+							}
+							res.add(user);
+						}
+						
+						return res;
+					}
+				});
 	}
 	
 	public Integer getJoomlaUserId(String nick) {

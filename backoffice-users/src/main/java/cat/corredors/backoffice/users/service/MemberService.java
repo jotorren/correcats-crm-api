@@ -8,7 +8,9 @@ import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstan
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_DELETE_MEMBER;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_EMAIL_INCONSISTENCIES;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_FIND_MEMBER;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_FORUM_GROUP_NOT_MEMBER;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_LIST_MEMBERS;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_MEMBER_NOT_FORUM_USER;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_NICK_EMAIL_VERIFICATION;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_NICK_INCONSISTENCIES;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Domain.ErrorCodes.ERR_REGISTER_MEMBER;
@@ -40,6 +42,8 @@ import javax.transaction.Transactional;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataAccessException;
@@ -93,6 +97,8 @@ public class MemberService {
 	}
 
 	private List<Map<String, Object>> selectFields(Iterable<Associada> resultSet, List<String> fields) {
+		log.info("Selecting fields [{}] from members list", fields.stream().collect(Collectors.joining(",")));
+
 		List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
 		
 		for (Associada associada:resultSet) {			
@@ -118,6 +124,7 @@ public class MemberService {
 	}
 	
 	private void export(List<Collection<Object>> resultSet, String fileName) {
+		log.info("Exporting list to CSV file {}", fileName);
 		
 		OutputStreamWriter fw = null;
 		CSVPrinter printer = null;
@@ -216,6 +223,8 @@ public class MemberService {
 				builder.with(new SpecSearchCriteria(logicalOperator, sc.getKey(), sc.getOperation(), sc.getValue()));
 			}
 			
+			log.info("Querying members with {}", 
+					search.stream().map(sc -> ToStringBuilder.reflectionToString(sc, ToStringStyle.JSON_STYLE)).collect(Collectors.joining(" && ")));
 			return selectFields(repository.findAll(builder.build(), sorter), fields);
 			
 		} catch (DataAccessException e) {
@@ -229,6 +238,10 @@ public class MemberService {
 			Map<String, Pair<String, String>> list = new HashMap<String, Pair<String, String>>();
 			
 			repository.findAll(Sort.by("nick").ascending()).forEach(associada -> {
+				if (System.currentTimeMillis() % 5 == 0) {
+					log.info("Still checking emails inconsistencies");
+				}
+				
 				joomlaRepository.getJoomlaEmail(associada.getNick())
 					.map(joomlaEmail -> {
 						if (!associada.getEmail().equalsIgnoreCase(joomlaEmail)) {
@@ -254,6 +267,10 @@ public class MemberService {
 			Map<String, Pair<String, String>> list = new HashMap<String, Pair<String, String>>();
 			
 			repository.findAll(Sort.by("nick").ascending()).forEach(associada -> {
+				if (System.currentTimeMillis() % 5 == 0) {
+					log.info("Still checking nicks inconsistencies");
+				}
+				
 				joomlaRepository.getJoomlaName(associada.getEmail())
 					.ifPresent(joomlaName -> {
 						if (!associada.getNick().equalsIgnoreCase(joomlaName)) {
@@ -268,7 +285,45 @@ public class MemberService {
 					e, ERR_NICK_INCONSISTENCIES, e.getMessage());
 		}
 	}
-		
+	
+	public List<Map<String, Object>> findNotForumGroup(List<String> fields) {
+		try {
+			List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
+			repository.findAll(Sort.by("nick").ascending()).forEach(associada -> {
+				if (System.currentTimeMillis() % 5 == 0) {
+					log.info("Still looking for members not in associats joomla group");
+				}
+				
+				if (null == joomlaRepository.getJoomlaUserId(associada.getNick())) {
+					res.add(selectFields(associada, fields));
+				}
+			});
+			return res;
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error looking for nicks not in joomla",
+					e, ERR_MEMBER_NOT_FORUM_USER, e.getMessage());
+		}		
+	}
+	
+	public List<Map<String, Object>> findForumGroupButNotMembers() {
+		try {
+			return joomlaRepository.findAll()
+				.stream()
+				.map(user -> {
+					if (System.currentTimeMillis() % 5 == 0) {
+						log.info("Still looking for nicks in associats joomla group but not declared as members");
+					}
+					return user;
+				})
+				.filter(user -> repository.findByNickIgnoreCase((String)user.get("name")).size() == 0)
+				.collect(Collectors.toList());
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error looking for nicks in joomla group"
+					+ "but not declared as members",
+					e, ERR_FORUM_GROUP_NOT_MEMBER, e.getMessage());
+		}		
+	}
+	
 	@Async
 	public void exportInconsistentEmails(String fileName) {
 		export(findInconsistentEmails().entrySet()
@@ -288,6 +343,22 @@ public class MemberService {
 				return Arrays.<Object>asList(data.getKey(), data.getValue().getFirst(), data.getValue().getSecond());
 			})
 			.collect(Collectors.toList()), fileName);
+	}
+
+	@Async
+	public void exportNotForumGroup(List<String> fields, String fileName) {
+		export(findNotForumGroup(fields)
+				.stream()
+				.map(data -> data.values())
+				.collect(Collectors.toList()), fileName);
+	}
+
+	@Async
+	public void exportForumGroupButNotMembers(String fileName) {
+		export(findForumGroupButNotMembers()
+				.stream()
+				.map(data -> data.values())
+				.collect(Collectors.toList()), fileName);
 	}
 	
 	@Async

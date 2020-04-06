@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -51,6 +52,7 @@ public class MemberRestController implements MemberApi {
 	private final BeanValidator beanValidator;
 	private final Function<String, URI> internalIdToURI;
 	private final BackOfficeUsersConfigurationProperties configuration;
+	private final Supplier<List<String>> allAssociadaProperties;
 	
 	@Override
 	public ResponseEntity<ResponseData<PageBean<AssociadaListItem>>> listMembers(@RequestParam int offset,
@@ -103,7 +105,7 @@ public class MemberRestController implements MemberApi {
 		return ResponseEntity
 				.ok(new ResponseData<Map<String, Pair<String, String>>>(INF_001, service.findInconsistentEmails()));
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public ResponseEntity<ResponseData<PageBean<Map<String, Object>>>> search(
@@ -139,23 +141,15 @@ public class MemberRestController implements MemberApi {
 			@RequestParam Optional<String> sortBy, @RequestParam Optional<Boolean> asc)
 			throws IOException, MissingServletRequestParameterException {
 		String fileName = DOWNLOAD_FILE_NAME + "-" + System.currentTimeMillis();
-		
+				
 		switch(queryType) {
 			case 0:
-				service.export(fields.get(), Collections.emptyList(), null, sortBy, asc.orElse(true), fileName);
+				service.export(fields.orElseGet(allAssociadaProperties), Collections.emptyList(), null, sortBy, asc.orElse(true), fileName);
 				break;
 			case 1:
-				if (!fields.isPresent()) {
-					throw new MissingServletRequestParameterException("fields", "List<String>");
-				}
-				if (!search.isPresent()) {
-					throw new MissingServletRequestParameterException("search", "List<SearchCriteria>");
-				}
-				List<SearchCriteria> criteria = search.get();
-				for (SearchCriteria sc: criteria) {
-					beanValidator.validate(sc);
-				}
-				service.export(fields.get(), criteria, logicalOperator.orElse(null), sortBy, asc.orElse(true), fileName);
+				List<SearchCriteria> criteria = search.orElse(Collections.emptyList());
+				criteria.forEach(sc -> { beanValidator.validate(sc); }); // Validate criteria				
+				service.export(fields.orElseGet(allAssociadaProperties), criteria, logicalOperator.orElse(null), sortBy, asc.orElse(true), fileName);
 				break;
 			case 2:
 				service.exportInconsistentEmails(fileName);
@@ -163,6 +157,13 @@ public class MemberRestController implements MemberApi {
 			case 3:
 				service.exportInconsistentNicks(fileName);
 				break;
+			case 4:
+				service.exportNotForumGroup(fields.orElseGet(allAssociadaProperties), fileName);
+				break;
+			case 5:
+				service.exportForumGroupButNotMembers(fileName);
+				break;
+		
 		}
 		
 		return ResponseEntity.ok(new ResponseData<String>(INF_001, fileName));
