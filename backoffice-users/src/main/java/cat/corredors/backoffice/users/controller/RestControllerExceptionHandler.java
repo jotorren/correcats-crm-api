@@ -42,7 +42,7 @@ public class RestControllerExceptionHandler {
 
    @ExceptionHandler(AccessDeniedException.class)
    @ResponseStatus(value = HttpStatus.FORBIDDEN)
-   public ResponseError defaultErrorHandlerAccessDeniedException(final HttpServletRequest request,
+   public ResponseError handleAccessDeniedException(final HttpServletRequest request,
            final HttpServletResponse response, final AccessDeniedException e) {
 	   String err = messageSource.getMessage(BackOfficeUsersConstants.Security.ErrorCodes.PREFIX + ACCESS_DENIED,
                new Object[] { e.getMessage() }, e.getMessage(), Locale.getDefault());
@@ -90,11 +90,31 @@ public class RestControllerExceptionHandler {
 	   });
 	   return new ResponseError(errors);
    }
+
+   @ExceptionHandler(MemberPreconditionException.class)
+   @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)
+   public ResponseError handlePrecondtionException(final HttpServletRequest request,
+           final HttpServletResponse response, final MemberPreconditionException e) {
+	   String err = messageSource
+               .getMessage(BackOfficeUsersConstants.REST.ErrorCodes.PREFIX + e.getCode(), e.getParameters(), e.getMessage(), Locale.getDefault());
+	   log.error(err);
+       return new ResponseError(e.getCode(), err);
+   }
    
+   @ExceptionHandler(BackOfficeUserNotFoundException.class)
+   @ResponseStatus(value = HttpStatus.NOT_FOUND)
+   public ResponseError handleNotFoundException(final HttpServletRequest request,
+           final HttpServletResponse response, final BackOfficeUserNotFoundException e) {
+	   String err = messageSource
+               .getMessage(BackOfficeUsersConstants.REST.ErrorCodes.PREFIX + e.getCode(), e.getParameters(), e.getMessage(), Locale.getDefault());
+	   log.error(err);
+       return new ResponseError(e.getCode(), err);
+   }
+
    @SuppressWarnings("unchecked")
    @ExceptionHandler(BackOfficeUsersSystemFault.class)
    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
-   public ResponseError defaultErrorHandlerSystemException(final HttpServletRequest request,
+   public ResponseError handleSystemException(final HttpServletRequest request,
            final HttpServletResponse response, final BackOfficeUsersSystemFault e) {
 		if (BackOfficeUsersConstants.REST.ErrorCodes.ERR_LST == e.getCode()) {
 			List<ErrorBean> errors = (List<ErrorBean>) e.getParameters()[0];
@@ -108,26 +128,6 @@ public class RestControllerExceptionHandler {
 			log.error(err, e);
 			return new ResponseError(e.getCode(), err);
 		}
-   }
-   
-   @ExceptionHandler(BackOfficeUserNotFoundException.class)
-   @ResponseStatus(value = HttpStatus.NOT_FOUND)
-   public ResponseError handleNotFoundException(final HttpServletRequest request,
-           final HttpServletResponse response, final BackOfficeUserNotFoundException e) {
-	   String err = messageSource
-               .getMessage(BackOfficeUsersConstants.REST.ErrorCodes.PREFIX + e.getCode(), e.getParameters(), e.getMessage(), Locale.getDefault());
-	   log.error(err);
-       return new ResponseError(e.getCode(), err);
-   }  
-
-   @ExceptionHandler(MemberPreconditionException.class)
-   @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)
-   public ResponseError handlePrecondtionException(final HttpServletRequest request,
-           final HttpServletResponse response, final MemberPreconditionException e) {
-	   String err = messageSource
-               .getMessage(BackOfficeUsersConstants.REST.ErrorCodes.PREFIX + e.getCode(), e.getParameters(), e.getMessage(), Locale.getDefault());
-	   log.error(err);
-       return new ResponseError(e.getCode(), err);
    }
    
    @ExceptionHandler(Exception.class)
