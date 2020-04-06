@@ -65,6 +65,10 @@ public class SearchCriteriaDeSerializer extends JsonDeserializer<SearchCriteria>
 	}
 
 	private Object getTypedValue(JsonNode valueNode, Class<?> type) {
+		if (valueNode.isNull()) {
+			return null;
+		}
+		
 		if (type.isAssignableFrom(Date.class)) {
 			try {
 				return valueNode.isArray()?getArrayValue(valueNode, type):formatter.parse(valueNode.asText());

@@ -26,7 +26,11 @@ public class AssociadaSpecification implements Specification<Associada> {
 	public Predicate toPredicate(final Root<Associada> root, final CriteriaQuery<?> query, final CriteriaBuilder builder) {
 		switch (criteria.getOperation()) {
 		case EQ:
-			return builder.equal(root.get(criteria.getKey()), criteria.getValue());
+			if (null == criteria.getValue()) {
+				return builder.isNull(root.get(criteria.getKey()));
+			} else {
+				return builder.equal(root.get(criteria.getKey()), criteria.getValue());
+			}
 		case IN:
 			In<Object> in = builder.in(root.get(criteria.getKey()));
 			List<?> values = (List<?>)criteria.getValue();

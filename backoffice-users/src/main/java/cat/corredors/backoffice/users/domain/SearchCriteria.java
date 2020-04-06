@@ -17,6 +17,5 @@ public class SearchCriteria {
 	private String key;
 	@NotNull
 	private SearchOperation operation;
-	@NotNull
 	private Object value;
 }
