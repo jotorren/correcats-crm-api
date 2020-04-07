@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -235,9 +234,9 @@ public class MemberService {
 	
 	public Map<String, Pair<String, String>> findInconsistentEmails() {
 		try {
-			Map<String, Pair<String, String>> list = new HashMap<String, Pair<String, String>>();
+			Map<String, Pair<String, String>> list = new LinkedHashMap<String, Pair<String, String>>();
 			
-			repository.findAll(Sort.by("nick").ascending()).forEach(associada -> {
+			repository.findByActivatTrue(Sort.by("nick").ascending()).forEach(associada -> {
 				if (System.currentTimeMillis() % 5 == 0) {
 					log.info("Still checking emails inconsistencies");
 				}
@@ -264,9 +263,9 @@ public class MemberService {
 
 	public Map<String, Pair<String, String>> findInconsistentNicks() {
 		try {
-			Map<String, Pair<String, String>> list = new HashMap<String, Pair<String, String>>();
+			Map<String, Pair<String, String>> list = new LinkedHashMap<String, Pair<String, String>>();
 			
-			repository.findAll(Sort.by("nick").ascending()).forEach(associada -> {
+			repository.findByActivatTrue(Sort.by("nick").ascending()).forEach(associada -> {
 				if (System.currentTimeMillis() % 5 == 0) {
 					log.info("Still checking nicks inconsistencies");
 				}
@@ -289,7 +288,7 @@ public class MemberService {
 	public List<Map<String, Object>> findNotForumGroup(List<String> fields) {
 		try {
 			List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
-			repository.findAll(Sort.by("nick").ascending()).forEach(associada -> {
+			repository.findByActivatTrue(Sort.by("nick").ascending()).forEach(associada -> {
 				if (System.currentTimeMillis() % 5 == 0) {
 					log.info("Still looking for members not in associats joomla group");
 				}
@@ -315,7 +314,7 @@ public class MemberService {
 					}
 					return user;
 				})
-				.filter(user -> repository.findByNickIgnoreCase((String)user.get("name")).size() == 0)
+				.filter(user -> repository.findByNickIgnoreCaseAndActivatTrue((String)user.get("name")).size() == 0)
 				.collect(Collectors.toList());
 		} catch (DataAccessException e) {
 			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000, "System error looking for nicks in joomla group"
