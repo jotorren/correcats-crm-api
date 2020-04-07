@@ -16,6 +16,9 @@ public class AssociadaForm {
 	private String cognoms;
 	
 	@NotBlank
+	private String sexe;
+	
+	@NotBlank
 	private String nick;
 	
 	@NotBlank
