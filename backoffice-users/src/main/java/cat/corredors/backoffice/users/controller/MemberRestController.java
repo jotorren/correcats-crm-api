@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -140,7 +141,8 @@ public class MemberRestController implements MemberApi {
 			@RequestParam Optional<String> logicalOperator,
 			@RequestParam Optional<String> sortBy, @RequestParam Optional<Boolean> asc)
 			throws IOException, MissingServletRequestParameterException {
-		String fileName = DOWNLOAD_FILE_NAME + "-" + System.currentTimeMillis();
+		String uuid = UUID.randomUUID().toString();
+		String fileName = DOWNLOAD_FILE_NAME + "-" +uuid.substring(uuid.length()-5);
 				
 		switch(queryType) {
 			case 0:
