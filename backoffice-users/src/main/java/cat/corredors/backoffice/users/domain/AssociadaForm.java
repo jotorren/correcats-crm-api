@@ -8,6 +8,8 @@ import lombok.Data;
 
 @Data
 public class AssociadaForm {
+
+	private Boolean activat;
 	
 	@NotBlank
 	private String nom;
@@ -17,6 +19,10 @@ public class AssociadaForm {
 	
 	@NotBlank
 	private String sexe;
+
+	private Boolean infantil;
+	
+	private Date dataNaixement;
 	
 	@NotBlank
 	private String nick;
@@ -31,15 +37,11 @@ public class AssociadaForm {
 	private String adreca;
 	private String codiPostal;
 	private String poblacio;
-
-	private Boolean activat;
-
-	private Float quotaAlta;
 	
+	private Float quotaAlta;
 //	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 	private Date dataAlta;
 	private Date dataBaixa;
-
-	private Boolean infantil;
+	
 	private String observacions;
 }

@@ -25,6 +25,9 @@ public class Associada {
 	@Column(name = "ID_SOCI", nullable = false)
 	private String id;
 	
+	@Column(name = "ACTIVAT", nullable = false)
+	private Boolean activat;
+	
 	@Column(name = "NOM", nullable = false)
 	private String nom;
 	
@@ -33,6 +36,14 @@ public class Associada {
 
 	@Column(name = "SEXE", nullable = false)
 	private String sexe;
+
+	@Column(name = "INFANTIL", nullable = false)
+	private Boolean infantil;
+	
+	@Column(name = "DATA_NAIXEMENT", nullable = true)
+	@Temporal(TemporalType.DATE)
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy")
+	private Date dataNaixement;
 	
 	@Column(name = "NICK", nullable = false, unique = true)
 	private String nick;
@@ -58,9 +69,6 @@ public class Associada {
 	@Column(name = "POBLACIO", nullable = true)
 	private String poblacio;
 	
-	@Column(name = "ACTIVAT", nullable = false)
-	private Boolean activat;
-	
 	@Column(name = "QUOTA_ALTA", nullable = true)	
 	private Float quotaAlta;
 	
@@ -73,9 +81,6 @@ public class Associada {
 	@Temporal(TemporalType.DATE)
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
 	private Date dataBaixa;
-
-	@Column(name = "INFANTIL", nullable = false)
-	private Boolean infantil;
 	
 	@Column(name = "OBSERVACIONS", nullable = true)
 	private String observacions;

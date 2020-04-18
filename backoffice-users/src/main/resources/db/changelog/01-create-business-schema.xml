@@ -10,6 +10,9 @@
 			<column name="ID_SOCI" type="INT" autoIncrement="true">
 				<constraints nullable="false" primaryKey="true" />
 			</column>
+			<column name="ACTIVAT" type="BOOLEAN" defaultValue="TRUE">
+				<constraints nullable="false" />
+			</column>
 			<column name="NOM" type="VARCHAR(255)">
 				<constraints nullable="false" />
 			</column>
@@ -19,6 +22,12 @@
 			<column name="SEXE" type="VARCHAR(1)">
 				<constraints nullable="false" />
 			</column>
+			<column name="INFANTIL" type="BOOLEAN" defaultValue="FALSE">
+				<constraints nullable="false" />
+			</column>			
+			<column name="DATA_NAIXEMENT" type="DATE">
+				<constraints nullable="true" />
+			</column>			
 			<column name="NICK" type="VARCHAR(32)">
 				<constraints nullable="false" unique="true" />
 			</column>
@@ -42,10 +51,7 @@
 			</column>
 			<column name="POBLACIO" type="VARCHAR(255)">
 				<constraints nullable="true" />
-			</column>
-			<column name="ACTIVAT" type="BOOLEAN" defaultValue="TRUE">
-				<constraints nullable="false" />
-			</column>
+			</column>			
 			<column name="QUOTA_ALTA" type="NUMBER">
 				<constraints nullable="true" />
 			</column>
@@ -54,9 +60,6 @@
 			</column>
 			<column name="DATA_BAIXA" type="DATE">
 				<constraints nullable="true" />
-			</column>
-			<column name="INFANTIL" type="BOOLEAN" defaultValue="FALSE">
-				<constraints nullable="false" />
 			</column>
 			<column name="OBSERVACIONS" type="VARCHAR(1024)">
 				<constraints nullable="true" />
