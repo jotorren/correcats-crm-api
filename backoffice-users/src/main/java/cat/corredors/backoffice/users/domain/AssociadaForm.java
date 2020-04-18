@@ -31,11 +31,14 @@ public class AssociadaForm {
 	private String adreca;
 	private String codiPostal;
 	private String poblacio;
-	
+
+	private Boolean activat;
+
 	private Float quotaAlta;
 	
 //	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 	private Date dataAlta;
-	
+	private Date dataBaixa;
+
 	private String observacions;
 }
