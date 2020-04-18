@@ -73,6 +73,9 @@ public class Associada {
 	@Temporal(TemporalType.DATE)
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
 	private Date dataBaixa;
+
+	@Column(name = "INFANTIL", nullable = false)
+	private Boolean infantil;
 	
 	@Column(name = "OBSERVACIONS", nullable = true)
 	private String observacions;

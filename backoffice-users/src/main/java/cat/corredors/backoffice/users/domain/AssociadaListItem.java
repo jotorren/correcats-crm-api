@@ -15,5 +15,6 @@ public class AssociadaListItem {
 	private Boolean activat;
 	private Date dataAlta;
 	private Date dataBaixa;
+	private Boolean infantil;
 	private String observacions;
 }

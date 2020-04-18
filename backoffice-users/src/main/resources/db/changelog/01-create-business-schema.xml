@@ -55,6 +55,9 @@
 			<column name="DATA_BAIXA" type="DATE">
 				<constraints nullable="true" />
 			</column>
+			<column name="INFANTIL" type="BOOLEAN" defaultValue="FALSE">
+				<constraints nullable="false" />
+			</column>
 			<column name="OBSERVACIONS" type="VARCHAR(1024)">
 				<constraints nullable="true" />
 			</column>		
