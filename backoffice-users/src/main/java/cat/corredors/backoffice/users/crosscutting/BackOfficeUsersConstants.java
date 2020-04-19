@@ -5,6 +5,8 @@ package cat.corredors.backoffice.users.crosscutting;
  */
 public interface BackOfficeUsersConstants {
 
+	String DATE_FORMAT = "dd/MM/yyyy";
+	
 	interface REST {
 
 		String DOWNLOAD_FILE_NAME = "associats.csv";

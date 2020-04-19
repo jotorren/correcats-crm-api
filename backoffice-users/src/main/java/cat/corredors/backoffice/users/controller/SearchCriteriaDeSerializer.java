@@ -1,5 +1,7 @@
 package cat.corredors.backoffice.users.controller;
 
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.DATE_FORMAT;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
@@ -28,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 public class SearchCriteriaDeSerializer extends JsonDeserializer<SearchCriteria> {
 	private static final long serialVersionUID = -2285975254676451930L;
 
-	public static final String DATE_FORMAT = "dd/MM/yyyy";
 	private final SimpleDateFormat formatter = new SimpleDateFormat(DATE_FORMAT);
 	
 	@Override
