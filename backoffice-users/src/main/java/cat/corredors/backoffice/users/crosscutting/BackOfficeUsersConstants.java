@@ -5,7 +5,8 @@ package cat.corredors.backoffice.users.crosscutting;
  */
 public interface BackOfficeUsersConstants {
 
-	String DATE_FORMAT = "dd/MM/yyyy";
+//	String DATE_FORMAT = "dd/MM/yyyy";
+	String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 	
 	interface REST {
 

@@ -1,11 +1,9 @@
 package cat.corredors.backoffice.users.configuration;
 
-import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.DATE_FORMAT;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.Endpoints.API_BASE;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
@@ -96,8 +94,8 @@ public class BackOfficeUsersConfiguration implements WebMvcConfigurer, AsyncConf
 		module.addDeserializer(SearchCriteria.class, new SearchCriteriaDeSerializer());
 		
 		return new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-				.setTimeZone(TimeZone.getDefault()).registerModule(module)
-				.setDateFormat(new SimpleDateFormat(DATE_FORMAT));
+				.setTimeZone(TimeZone.getDefault()).registerModule(module);
+//				.setDateFormat(new SimpleDateFormat(DATE_FORMAT));
 	}
 
 	@Bean

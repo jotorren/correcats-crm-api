@@ -1,7 +1,5 @@
 package cat.corredors.backoffice.users.domain;
 
-import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.DATE_FORMAT;
-
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -12,8 +10,6 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Data;
 
@@ -44,7 +40,7 @@ public class Associada {
 	
 	@Column(name = "DATA_NAIXEMENT", nullable = true)
 	@Temporal(TemporalType.DATE)
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
+//	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
 	private Date dataNaixement;
 	
 	@Column(name = "NICK", nullable = false, unique = true)
@@ -76,12 +72,12 @@ public class Associada {
 	
 	@Column(name = "DATA_ALTA", nullable = true)
 	@Temporal(TemporalType.DATE)
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
+//	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
 	private Date dataAlta;
 	
 	@Column(name = "DATA_BAIXA", nullable = true)
 	@Temporal(TemporalType.DATE)
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
+//	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
 	private Date dataBaixa;
 	
 	@Column(name = "OBSERVACIONS", nullable = true)
