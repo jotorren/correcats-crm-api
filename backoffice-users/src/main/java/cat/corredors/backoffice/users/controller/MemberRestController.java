@@ -3,6 +3,10 @@ package cat.corredors.backoffice.users.controller;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.DOWNLOAD_CONTENT_TYPE;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.DOWNLOAD_FILE_NAME;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.InfoCodes.INF_001;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.Roles.ADMIN;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.Roles.JUNTA;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.Roles.SECRETARIA;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.Roles.ORGANITZADORA;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,6 +26,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -56,6 +61,7 @@ public class MemberRestController implements MemberApi {
 	private final Supplier<List<String>> allAssociadaProperties;
 	
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "','" + ORGANITZADORA + "') ")
 	public ResponseEntity<ResponseData<PageBean<AssociadaListItem>>> listMembers(@RequestParam int offset,
 			@RequestParam int limit, @RequestParam Optional<String> search, @RequestParam Optional<String> sortBy,
 			@RequestParam Optional<Boolean> asc) {
@@ -72,36 +78,42 @@ public class MemberRestController implements MemberApi {
 	}
 
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "','" + ORGANITZADORA + "') ")
 	public ResponseEntity<ResponseData<Associada>> getMember(@PathVariable String memberId)
 			throws BackOfficeUserNotFoundException {
 		return ResponseEntity.ok(new ResponseData<Associada>(INF_001, service.findOne(memberId)));
 	}
 
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "','" + ORGANITZADORA + "') ")
 	public ResponseEntity<ResponseData<Boolean>> isNickOk(@RequestParam String nick)
 			throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException {
 		return ResponseEntity.ok(new ResponseData<Boolean>(INF_001, service.isNickAvailable(nick)));
 	}
 
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "','" + ORGANITZADORA + "') ")
 	public ResponseEntity<ResponseData<Boolean>> isEmailOk(@RequestParam String email)
 			throws MemberEmailAlreadyExistsException {
 		return ResponseEntity.ok(new ResponseData<Boolean>(INF_001, service.isEmailAvailable(email)));
 	}
 
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "') ")
 	public ResponseEntity<ResponseData<List<String>>> checkConsistency(@RequestParam String nick,
 			@RequestParam String email) throws BackOfficeUserNotFoundException {
 		return ResponseEntity.ok(new ResponseData<List<String>>(INF_001, service.checkConsistency(nick, email)));
 	}
 
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "') ")
 	public ResponseEntity<ResponseData<Map<String, Pair<String, String>>>> listInconsistentNicks() {
 		return ResponseEntity
 				.ok(new ResponseData<Map<String, Pair<String, String>>>(INF_001, service.findInconsistentNicks()));
 	}
 
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "') ")
 	public ResponseEntity<ResponseData<Map<String, Pair<String, String>>>> listInconsistentEmails() {
 		return ResponseEntity
 				.ok(new ResponseData<Map<String, Pair<String, String>>>(INF_001, service.findInconsistentEmails()));
@@ -109,6 +121,7 @@ public class MemberRestController implements MemberApi {
 	
 	@SuppressWarnings("unchecked")
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "') ")
 	public ResponseEntity<ResponseData<PageBean<Map<String, Object>>>> search(
 			@RequestParam List<String> fields,
 			@RequestBody List<SearchCriteria> search,
@@ -134,6 +147,7 @@ public class MemberRestController implements MemberApi {
 	}
 	
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "') ")
 	public ResponseEntity<ResponseData<String>> export(
 			@RequestParam int queryType,
 			@RequestParam Optional<List<String>> fields,
@@ -177,12 +191,14 @@ public class MemberRestController implements MemberApi {
 	}
 
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "') ")
 	public ResponseEntity<ResponseData<Boolean>> isReady(String file) {
 		File f = new File(configuration.getExportDirectory(), file);
 		return ResponseEntity.ok(new ResponseData<Boolean>(INF_001, f.exists() && f.canRead()));
 	}
 	
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "') ")
 	public void download(HttpServletResponse response, String file) throws IOException {
 		File f = new File(configuration.getExportDirectory(), file);
 		if (f.exists() && f.canRead()) {
@@ -211,6 +227,7 @@ public class MemberRestController implements MemberApi {
 	}
 	
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "') ")
 	public ResponseEntity<ResponseData<Associada>> updateMember(@PathVariable String memberId,
 			@RequestBody AssociadaForm data)
 			throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException {
@@ -219,6 +236,7 @@ public class MemberRestController implements MemberApi {
 	}
 
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "') ")
 	public ResponseEntity<ResponseData<Associada>> registerMember(@PathVariable String memberId)
 			throws BackOfficeUserNotFoundException, MemberAlreadyRegisteredException {
 		Associada entity = service.register(memberId);
@@ -226,6 +244,7 @@ public class MemberRestController implements MemberApi {
 	}
 
 	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "') ")
 	public ResponseEntity<ResponseData<Associada>> unregisterMember(@PathVariable String memberId)
 			throws BackOfficeUserNotFoundException, MemberNotRegisteredException {
 		Associada entity = service.unregister(memberId);
@@ -233,18 +252,20 @@ public class MemberRestController implements MemberApi {
 	}
 
 	@Override
-	public ResponseEntity<ResponseData<Void>> deleteMember(@PathVariable String memberId)
-			throws BackOfficeUserNotFoundException, MemberStillRegisteredException {
-		service.delete(memberId);
-		return ResponseEntity.ok(new ResponseData<Void>(INF_001, null));
-	}
-
-	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "') ")
 	public ResponseEntity<ResponseData<String>> registerMember(@RequestBody AssociadaForm data)
 			throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException {
 		beanValidator.validate(data);
 		Associada entity = service.create(data);
 		return ResponseEntity.created(internalIdToURI.apply(entity.getId()))
 				.body(new ResponseData<String>(INF_001, entity.getId()));
+	}
+
+	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "') ")
+	public ResponseEntity<ResponseData<Void>> deleteMember(@PathVariable String memberId)
+			throws BackOfficeUserNotFoundException, MemberStillRegisteredException {
+		service.delete(memberId);
+		return ResponseEntity.ok(new ResponseData<Void>(INF_001, null));
 	}
 }

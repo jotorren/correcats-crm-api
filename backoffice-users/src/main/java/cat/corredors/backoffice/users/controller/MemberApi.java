@@ -172,15 +172,6 @@ public interface MemberApi {
 			@NotNull String memberId) 
 			throws BackOfficeUserNotFoundException, MemberNotRegisteredException;
 	
-	@DeleteMapping(
-			value = "/{memberId}", 
-			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
-			produces = { MediaType.APPLICATION_JSON_VALUE }
-	)
-	ResponseEntity<ResponseData<Void>> deleteMember(
-			@NotNull String memberId) 
-			throws BackOfficeUserNotFoundException, MemberStillRegisteredException;
-	
 	@PostMapping(
 			value = "/", 
 			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION,
@@ -190,4 +181,13 @@ public interface MemberApi {
 	ResponseEntity<ResponseData<String>> registerMember(
 			@NotNull AssociadaForm data) 
 			throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException;
+	
+	@DeleteMapping(
+			value = "/{memberId}", 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
+			produces = { MediaType.APPLICATION_JSON_VALUE }
+	)
+	ResponseEntity<ResponseData<Void>> deleteMember(
+			@NotNull String memberId) 
+			throws BackOfficeUserNotFoundException, MemberStillRegisteredException;
 }

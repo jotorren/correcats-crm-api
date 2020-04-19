@@ -50,13 +50,12 @@ public interface BackOfficeUsersConstants {
 	interface Security {
 		
 		interface Roles {
-			String ADMIN = "BO_administradora";
-			String ASSOCIADA = "BO_associada";
-			String GESTORA = "BO_gestora";
-			String JUNTA = "BO_junta";
-			String ORGANITZADORA = "BO_organitzadora";
-			String PUBLICA = "BO_publica";
-			String SECRETARIA = "BO_secretaria";
+			String ADMIN = "BO_ADMINISTRADORA";
+			String SECRETARIA = "BO_SECRETARIA";
+			String JUNTA = "BO_JUNTA";
+			String ORGANITZADORA = "BO_ORGANITZADORA";
+			String ASSOCIADA = "BO_ASSOCIADA";
+			String PUBLICA = "BO_PUBLICA";
 		}
 		
 		interface OIDC {
