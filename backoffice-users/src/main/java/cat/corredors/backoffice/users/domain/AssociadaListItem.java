@@ -8,6 +8,7 @@ import lombok.Data;
 public class AssociadaListItem {
 	
 	private String id;
+	private Boolean activat;
 	private String nom;
 	private String cognoms;
 	private String nick;

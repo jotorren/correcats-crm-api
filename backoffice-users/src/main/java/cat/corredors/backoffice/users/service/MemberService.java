@@ -172,14 +172,26 @@ public class MemberService {
 
 			return search
 					.map(value -> {
-						AssociadaInfantilSpecificationsBuilder builder = new AssociadaInfantilSpecificationsBuilder();
-						return repositoryChildren.findAll(builder
-							.with(new SpecSearchCriteria("cognoms", SearchOperation.CONTAINS, value))
-							.with(new SpecSearchCriteria("'","nom", SearchOperation.CONTAINS, value))
-							.with(new SpecSearchCriteria("'","nick", SearchOperation.CONTAINS, value))
-							.with(new SpecSearchCriteria("'","responsable", SearchOperation.CONTAINS, value))
-							.with(new SpecSearchCriteria("activat", SearchOperation.EQ, true))
-							.build(), pageWithElements);
+						String filter = value.trim();
+						boolean activat = true;
+						
+						int idx = value.indexOf(";");
+						if (idx > 0) {
+							filter = value.substring(idx + 1);
+							activat = !"true".equalsIgnoreCase(value.substring(0, idx));
+						}
+						
+						AssociadaInfantilSpecificationsBuilder builder = new AssociadaInfantilSpecificationsBuilder()
+							.with(new SpecSearchCriteria("cognoms", SearchOperation.CONTAINS, filter))
+							.with(new SpecSearchCriteria("'","nom", SearchOperation.CONTAINS, filter))
+							.with(new SpecSearchCriteria("'","nick", SearchOperation.CONTAINS, filter))
+							.with(new SpecSearchCriteria("'","responsable", SearchOperation.CONTAINS, filter));
+						
+						if (activat) {
+							builder.with(new SpecSearchCriteria("activat", SearchOperation.EQ, true));
+						}
+						
+						return repositoryChildren.findAll(builder.build(), pageWithElements);
 					})
 					.orElse(repositoryChildren.findByActivatTrue(pageWithElements))
 					.map(all -> {
@@ -422,6 +434,20 @@ public class MemberService {
 
 			if (!this.repositoryChildren.findByNickIgnoreCase(nick).isEmpty()) {
 				throw new MemberNickAlreadyExistsException(nick);
+			}
+			
+			return true;
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
+					String.format("System error looking for nick %s", nick), e, ERR_CHECK_NICK, e.getMessage());
+		}
+	}
+
+	public boolean isResponsableChildOk(String nick) throws BackOfficeUserNotFoundException {
+		try {
+
+			if (this.repository.findByNickIgnoreCase(nick).isEmpty()) {
+				throw new BackOfficeUserNotFoundException(nick);
 			}
 			
 			return true;

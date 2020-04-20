@@ -70,6 +70,14 @@ public interface MemberApi {
     ResponseEntity<ResponseData<Boolean>> isNickChildOk(
     		@NotNull String nick)
     		throws MemberNickAlreadyExistsException;
+
+	@GetMapping(
+			value = "/child/responsable", 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<ResponseData<Boolean>> isResponsableChildOk(
+    		@NotNull String nick)
+    		throws BackOfficeUserNotFoundException;
 	
 	@PutMapping(
 			value = "/child/{memberId}", 
