@@ -29,5 +29,7 @@ public class AssociadaInfantilForm {
 	private String email;
 	private String dni;
 	private Date dataNaixement;
+	private Date dataAlta;
+	private Date dataBaixa;
 	private String observacions;
 }
