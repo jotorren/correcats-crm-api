@@ -7,7 +7,7 @@ import javax.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class AssociadaForm {
+public class AssociadaInfantilForm {
 
 	private Boolean activat;
 	
@@ -19,24 +19,15 @@ public class AssociadaForm {
 	
 	@NotBlank
 	private String sexe;
-	
+
 	@NotBlank
 	private String nick;
 	
 	@NotBlank
-	private String email;
-
-	private String nif;
-	private String iban;
+	private String responsable;	
 	
-	private String telefon;
-	private String adreca;
-	private String codiPostal;
-	private String poblacio;
-
-	private Float quotaAlta;
-//	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-	private Date dataAlta;
-	private Date dataBaixa;
+	private String email;
+	private String dni;
+	private Date dataNaixement;
 	private String observacions;
 }

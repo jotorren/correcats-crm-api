@@ -29,6 +29,8 @@ import cat.corredors.backoffice.users.crosscutting.MemberNotRegisteredException;
 import cat.corredors.backoffice.users.crosscutting.MemberStillRegisteredException;
 import cat.corredors.backoffice.users.domain.Associada;
 import cat.corredors.backoffice.users.domain.AssociadaForm;
+import cat.corredors.backoffice.users.domain.AssociadaInfantil;
+import cat.corredors.backoffice.users.domain.AssociadaInfantilForm;
 import cat.corredors.backoffice.users.domain.AssociadaListItem;
 import cat.corredors.backoffice.users.domain.SearchCriteria;
 import io.swagger.annotations.ApiParam;
@@ -38,8 +40,11 @@ import reactor.core.publisher.Flux;
 @RequestMapping(BackOfficeUsersConstants.REST.Endpoints.API_BASE)
 public interface MemberApi {
 
+	/**********************************************************************************************************
+	 * Associada infantil                                                                                     *
+	 **********************************************************************************************************/
 	@GetMapping(
-			value = "/", 
+			value = "/child", 
 			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<PageBean<AssociadaListItem>>> listMembers(
@@ -50,6 +55,46 @@ public interface MemberApi {
     		@ApiParam(value = "Sort direction", required = false) Optional<Boolean> asc
     		);
 
+	@GetMapping(
+			value = "/child/{memberId}", 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<ResponseData<AssociadaInfantil>> getChildMember(
+    		@NotNull String memberId) 
+    		throws BackOfficeUserNotFoundException;
+	
+	@GetMapping(
+			value = "/child/nick", 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
+			produces = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<ResponseData<Boolean>> isNickChildOk(
+    		@NotNull String nick)
+    		throws MemberNickAlreadyExistsException;
+	
+	@PutMapping(
+			value = "/child/{memberId}", 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION,
+			consumes = { MediaType.APPLICATION_JSON_VALUE },
+			produces = { MediaType.APPLICATION_JSON_VALUE }
+	)
+	ResponseEntity<ResponseData<AssociadaInfantil>> updateChildMember(
+			@NotNull String memberId, @NotNull AssociadaInfantilForm data) 
+			throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException;
+	
+	@PostMapping(
+			value = "/child", 
+			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION,
+			consumes = { MediaType.APPLICATION_JSON_VALUE },
+			produces = { MediaType.APPLICATION_JSON_VALUE }
+	)
+	ResponseEntity<ResponseData<String>> registerChildMember(
+			@NotNull AssociadaInfantilForm data) 
+			throws MemberNickAlreadyExistsException;
+	
+	/**********************************************************************************************************
+	 * Associada                                                                                              *
+	 **********************************************************************************************************/
+	
 	@GetMapping(
 			value = "/{memberId}", 
 			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 
@@ -65,7 +110,7 @@ public interface MemberApi {
     ResponseEntity<ResponseData<Boolean>> isNickOk(
     		@NotNull String nick)
     		throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException;
-
+	
 	@GetMapping(
 			value = "/email", 
 			params = BackOfficeUsersConstants.REST.Endpoints.API_VERSION, 

@@ -5,8 +5,8 @@ import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstan
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.REST.InfoCodes.INF_001;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.Roles.ADMIN;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.Roles.JUNTA;
-import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.Roles.SECRETARIA;
 import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.Roles.ORGANITZADORA;
+import static cat.corredors.backoffice.users.crosscutting.BackOfficeUsersConstants.Security.Roles.SECRETARIA;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,6 +42,8 @@ import cat.corredors.backoffice.users.crosscutting.MemberNotRegisteredException;
 import cat.corredors.backoffice.users.crosscutting.MemberStillRegisteredException;
 import cat.corredors.backoffice.users.domain.Associada;
 import cat.corredors.backoffice.users.domain.AssociadaForm;
+import cat.corredors.backoffice.users.domain.AssociadaInfantil;
+import cat.corredors.backoffice.users.domain.AssociadaInfantilForm;
 import cat.corredors.backoffice.users.domain.AssociadaListItem;
 import cat.corredors.backoffice.users.domain.SearchCriteria;
 import cat.corredors.backoffice.users.service.MemberService;
@@ -59,6 +61,10 @@ public class MemberRestController implements MemberApi {
 	private final Function<String, URI> internalIdToURI;
 	private final BackOfficeUsersConfigurationProperties configuration;
 	private final Supplier<List<String>> allAssociadaProperties;
+
+	/**********************************************************************************************************
+	 * Associada infantil                                                                                     *
+	 **********************************************************************************************************/
 	
 	@Override
 	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "','" + ORGANITZADORA + "') ")
@@ -77,6 +83,43 @@ public class MemberRestController implements MemberApi {
 		return ResponseEntity.ok(new ResponseData<PageBean<AssociadaListItem>>(INF_001, pageBean));
 	}
 
+	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "','" + ORGANITZADORA + "') ")
+	public ResponseEntity<ResponseData<AssociadaInfantil>> getChildMember(@PathVariable String memberId)
+			throws BackOfficeUserNotFoundException {
+		return ResponseEntity.ok(new ResponseData<AssociadaInfantil>(INF_001, service.findOneChild(memberId)));
+	}
+
+	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "','" + ORGANITZADORA + "') ")
+	public ResponseEntity<ResponseData<Boolean>> isNickChildOk(@RequestParam String nick)
+			throws MemberNickAlreadyExistsException {
+		return ResponseEntity.ok(new ResponseData<Boolean>(INF_001, service.isNickChildAvailable(nick)));
+	}
+
+	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "') ")
+	public ResponseEntity<ResponseData<AssociadaInfantil>> updateChildMember(@PathVariable String memberId,
+			@RequestBody AssociadaInfantilForm data)
+			throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException {
+		AssociadaInfantil entity = service.updateChild(memberId, data);
+		return ResponseEntity.ok(new ResponseData<AssociadaInfantil>(INF_001, entity));
+	}
+
+	@Override
+	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "') ")
+	public ResponseEntity<ResponseData<String>> registerChildMember(@RequestBody AssociadaInfantilForm data)
+			throws MemberNickAlreadyExistsException {
+		beanValidator.validate(data);
+		AssociadaInfantil entity = service.createChild(data);
+		return ResponseEntity.created(internalIdToURI.apply(entity.getId()))
+				.body(new ResponseData<String>(INF_001, entity.getId()));
+	}
+	
+	/**********************************************************************************************************
+	 * Associada                                                                                              *
+	 **********************************************************************************************************/
+	
 	@Override
 	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "','" + ORGANITZADORA + "') ")
 	public ResponseEntity<ResponseData<Associada>> getMember(@PathVariable String memberId)

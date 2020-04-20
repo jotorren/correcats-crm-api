@@ -65,9 +65,13 @@ import cat.corredors.backoffice.users.crosscutting.MemberNotRegisteredException;
 import cat.corredors.backoffice.users.crosscutting.MemberStillRegisteredException;
 import cat.corredors.backoffice.users.domain.Associada;
 import cat.corredors.backoffice.users.domain.AssociadaForm;
+import cat.corredors.backoffice.users.domain.AssociadaInfantil;
+import cat.corredors.backoffice.users.domain.AssociadaInfantilForm;
 import cat.corredors.backoffice.users.domain.AssociadaListItem;
 import cat.corredors.backoffice.users.domain.SearchCriteria;
 import cat.corredors.backoffice.users.domain.SearchOperation;
+import cat.corredors.backoffice.users.repository.AssociadaInfantilRepository;
+import cat.corredors.backoffice.users.repository.AssociadaInfantilSpecificationsBuilder;
 import cat.corredors.backoffice.users.repository.AssociadaRepository;
 import cat.corredors.backoffice.users.repository.AssociadaSpecificationsBuilder;
 import cat.corredors.backoffice.users.repository.JoomlaRepository;
@@ -83,6 +87,7 @@ import reactor.core.publisher.Flux;
 public class MemberService {
 
 	private final AssociadaRepository repository;
+	private final AssociadaInfantilRepository repositoryChildren;
 	private final JoomlaRepository joomlaRepository;
 	private final MessageSource messageSource;
 	private final BackOfficeUsersConfigurationProperties configuration;
@@ -156,7 +161,7 @@ public class MemberService {
 			}
 		}
 	}
-
+	
 	public Page<AssociadaListItem> findAll(int offset, int limit, Optional<String> search, Optional<String> sortBy, boolean asc) {
 		try {
 			int page = offset/limit;
@@ -167,15 +172,16 @@ public class MemberService {
 
 			return search
 					.map(value -> {
-						AssociadaSpecificationsBuilder builder = new AssociadaSpecificationsBuilder();
-						return repository.findAll(builder
+						AssociadaInfantilSpecificationsBuilder builder = new AssociadaInfantilSpecificationsBuilder();
+						return repositoryChildren.findAll(builder
 							.with(new SpecSearchCriteria("cognoms", SearchOperation.CONTAINS, value))
 							.with(new SpecSearchCriteria("'","nom", SearchOperation.CONTAINS, value))
 							.with(new SpecSearchCriteria("'","nick", SearchOperation.CONTAINS, value))
+							.with(new SpecSearchCriteria("'","responsable", SearchOperation.CONTAINS, value))
 							.with(new SpecSearchCriteria("activat", SearchOperation.EQ, true))
 							.build(), pageWithElements);
 					})
-					.orElse(repository.findByActivatTrue(pageWithElements))
+					.orElse(repositoryChildren.findByActivatTrue(pageWithElements))
 					.map(all -> {
 						AssociadaListItem item = new AssociadaListItem();
 						BeanUtils.copyProperties(all, item);
@@ -384,6 +390,15 @@ public class MemberService {
 		}
 	}
 
+	public AssociadaInfantil findOneChild(String memberId) throws BackOfficeUserNotFoundException {
+		try {
+			return repositoryChildren.findById(memberId).orElseThrow(() -> new BackOfficeUserNotFoundException(memberId));
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
+					String.format("System error looking for member %s", memberId), e, ERR_FIND_MEMBER, e.getMessage());
+		}
+	}
+	
 	public boolean isNickAvailable(String nick) throws MemberNickAlreadyExistsException, BackOfficeUserNotFoundException {
 		try {
 
@@ -393,6 +408,20 @@ public class MemberService {
 
 			if (null == joomlaRepository.getJoomlaUserId(nick)) {
 				throw new BackOfficeUserNotFoundException(nick);
+			}
+			
+			return true;
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
+					String.format("System error looking for nick %s", nick), e, ERR_CHECK_NICK, e.getMessage());
+		}
+	}
+
+	public boolean isNickChildAvailable(String nick) throws MemberNickAlreadyExistsException {
+		try {
+
+			if (!this.repositoryChildren.findByNickIgnoreCase(nick).isEmpty()) {
+				throw new MemberNickAlreadyExistsException(nick);
 			}
 			
 			return true;
@@ -460,31 +489,6 @@ public class MemberService {
 					e.getMessage());
 		}
 	}
-
-	public Associada update(String memberId, AssociadaForm data) 
-			throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException {
-		try {
-			Associada member = repository.findById(memberId).orElseThrow(() -> new BackOfficeUserNotFoundException(memberId));
-
-			List<Associada> list = this.repository.findByNickIgnoreCase(data.getNick());
-			if (!list.isEmpty() && list.stream().anyMatch(item -> !item.getId().equalsIgnoreCase(memberId))) {
-				throw new MemberNickAlreadyExistsException(data.getNick());
-			}
-
-			list = this.repository.findByEmailIgnoreCase(data.getEmail());
-			if (!list.isEmpty() && list.stream().anyMatch(item -> !item.getId().equalsIgnoreCase(memberId))) {
-				throw new MemberEmailAlreadyExistsException(data.getEmail());
-			}
-			
-			BeanUtils.copyProperties(data, member);
-			return this.repository.save(member);
-			
-		} catch (DataAccessException e) {
-			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
-					String.format("System error registering existent %s", memberId), e, ERR_REGISTER_MEMBER,
-					e.getMessage());
-		}
-	}
 	
 	@Transactional
 	public Associada unregister(String memberId) throws BackOfficeUserNotFoundException, MemberNotRegisteredException {
@@ -506,23 +510,6 @@ public class MemberService {
 		} catch (DataAccessException e) {
 			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
 					String.format("System error unregistering %s", memberId), e, ERR_UNREGISTER_MEMBER,
-					e.getMessage());
-		}
-	}
-
-	public void delete(String memberId) throws BackOfficeUserNotFoundException, MemberStillRegisteredException {
-		try {
-			Associada member = repository.findById(memberId).orElseThrow(() -> new BackOfficeUserNotFoundException(memberId));
-			
-			if (member.getActivat()) {
-				throw new MemberStillRegisteredException(member.getNick());
-			}
-			
-			this.repository.delete(member);
-
-		} catch (DataAccessException e) {
-			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
-					String.format("System error deleting %s", memberId), e, ERR_DELETE_MEMBER,
 					e.getMessage());
 		}
 	}
@@ -551,6 +538,88 @@ public class MemberService {
 		} catch (DataAccessException e) {
 			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
 					String.format("System error registering new member %s", data.getNick()), e, ERR_CREATE_MEMBER,
+					e.getMessage());
+		}
+	}
+
+	public AssociadaInfantil createChild(AssociadaInfantilForm data) throws MemberNickAlreadyExistsException {
+		try {
+			if (!this.repositoryChildren.findByNickIgnoreCase(data.getNick()).isEmpty()) {
+				throw new MemberNickAlreadyExistsException(data.getNick());
+			}
+
+			AssociadaInfantil member = new AssociadaInfantil();
+			BeanUtils.copyProperties(data, member);
+			member.setActivat(Boolean.TRUE);
+			member.setDataAlta(new Date());
+			member.setDataBaixa(null);
+			return this.repositoryChildren.save(member);
+			
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
+					String.format("System error registering new member %s", data.getNick()), e, ERR_CREATE_MEMBER,
+					e.getMessage());
+		}
+	}
+	
+	public Associada update(String memberId, AssociadaForm data) 
+			throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException, MemberEmailAlreadyExistsException {
+		try {
+			Associada member = repository.findById(memberId).orElseThrow(() -> new BackOfficeUserNotFoundException(memberId));
+
+			List<Associada> list = this.repository.findByNickIgnoreCase(data.getNick());
+			if (!list.isEmpty() && list.stream().anyMatch(item -> !item.getId().equalsIgnoreCase(memberId))) {
+				throw new MemberNickAlreadyExistsException(data.getNick());
+			}
+
+			list = this.repository.findByEmailIgnoreCase(data.getEmail());
+			if (!list.isEmpty() && list.stream().anyMatch(item -> !item.getId().equalsIgnoreCase(memberId))) {
+				throw new MemberEmailAlreadyExistsException(data.getEmail());
+			}
+			
+			BeanUtils.copyProperties(data, member);
+			return this.repository.save(member);
+			
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
+					String.format("System error registering existent %s", memberId), e, ERR_REGISTER_MEMBER,
+					e.getMessage());
+		}
+	}
+
+	public AssociadaInfantil updateChild(String memberId, AssociadaInfantilForm data) 
+			throws BackOfficeUserNotFoundException, MemberNickAlreadyExistsException {
+		try {
+			AssociadaInfantil member = repositoryChildren.findById(memberId).orElseThrow(() -> new BackOfficeUserNotFoundException(memberId));
+
+			List<AssociadaInfantil> list = this.repositoryChildren.findByNickIgnoreCase(data.getNick());
+			if (!list.isEmpty() && list.stream().anyMatch(item -> !item.getId().equalsIgnoreCase(memberId))) {
+				throw new MemberNickAlreadyExistsException(data.getNick());
+			}
+			
+			BeanUtils.copyProperties(data, member);
+			return this.repositoryChildren.save(member);
+			
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
+					String.format("System error registering existent %s", memberId), e, ERR_REGISTER_MEMBER,
+					e.getMessage());
+		}
+	}
+	
+	public void delete(String memberId) throws BackOfficeUserNotFoundException, MemberStillRegisteredException {
+		try {
+			Associada member = repository.findById(memberId).orElseThrow(() -> new BackOfficeUserNotFoundException(memberId));
+			
+			if (member.getActivat()) {
+				throw new MemberStillRegisteredException(member.getNick());
+			}
+			
+			this.repository.delete(member);
+
+		} catch (DataAccessException e) {
+			throw new BackOfficeUsersSystemFault(BackOfficeUsersConstants.REST.ErrorCodes.ERR_000,
+					String.format("System error deleting %s", memberId), e, ERR_DELETE_MEMBER,
 					e.getMessage());
 		}
 	}

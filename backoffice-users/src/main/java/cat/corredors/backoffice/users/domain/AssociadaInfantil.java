@@ -14,9 +14,9 @@ import javax.persistence.TemporalType;
 import lombok.Data;
 
 @Entity
-@Table(name = "BO_ASSOCIAT")
+@Table(name = "BO_ASSOCIAT_INFANTIL")
 @Data
-public class Associada {
+public class AssociadaInfantil {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,34 +34,24 @@ public class Associada {
 
 	@Column(name = "SEXE", nullable = false)
 	private String sexe;
-	
+
 	@Column(name = "NICK", nullable = false, unique = true)
 	private String nick;
+
+	@Column(name = "RESPONSABLE", nullable = false)
+	private String responsable;	
 	
-	@Column(name = "EMAIL", nullable = false, unique = true)
+	@Column(name = "EMAIL", nullable = true)
 	private String email;
 
-	@Column(name = "NIF", nullable = true)
-	private String nif;
-	
-	@Column(name = "IBAN", nullable = true)
-	private String iban;
-	
-	@Column(name = "TELEFON", nullable = true)
-	private String telefon;
-	
-	@Column(name = "ADRECA", nullable = true)
-	private String adreca;
-	
-	@Column(name = "CODI_POSTAL", nullable = true)
-	private String codiPostal;
-	
-	@Column(name = "POBLACIO", nullable = true)
-	private String poblacio;
-	
-	@Column(name = "QUOTA_ALTA", nullable = true)	
-	private Float quotaAlta;
-	
+	@Column(name = "DNI", nullable = true)
+	private String dni;
+
+	@Column(name = "DATA_NAIXEMENT", nullable = true)
+	@Temporal(TemporalType.DATE)
+//	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
+	private Date dataNaixement;
+		
 	@Column(name = "DATA_ALTA", nullable = true)
 	@Temporal(TemporalType.DATE)
 //	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)

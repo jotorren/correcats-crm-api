@@ -11,12 +11,7 @@ public class AssociadaListItem {
 	private String nom;
 	private String cognoms;
 	private String nick;
-	private String email;
-	private Boolean activat;
+	private String responsable;
 //	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
-	private Date dataAlta;
-//	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
-	private Date dataBaixa;
-	private Boolean infantil;
-	private String observacions;
+	private Date dataNaixement;
 }

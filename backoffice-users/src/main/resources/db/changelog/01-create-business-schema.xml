@@ -21,13 +21,7 @@
 			</column>
 			<column name="SEXE" type="VARCHAR(1)">
 				<constraints nullable="false" />
-			</column>
-			<column name="INFANTIL" type="BOOLEAN" defaultValue="FALSE">
-				<constraints nullable="false" />
-			</column>			
-			<column name="DATA_NAIXEMENT" type="DATE">
-				<constraints nullable="true" />
-			</column>			
+			</column>				
 			<column name="NICK" type="VARCHAR(32)">
 				<constraints nullable="false" unique="true" />
 			</column>
@@ -65,6 +59,54 @@
 				<constraints nullable="true" />
 			</column>		
 		</createTable>
+		
+		<createTable tableName="BO_ASSOCIAT_INFANTIL" remarks="Associats/des infantils">
+			<column name="ID_SOCI" type="INT" autoIncrement="true">
+				<constraints nullable="false" primaryKey="true" />
+			</column>
+			<column name="ACTIVAT" type="BOOLEAN" defaultValue="TRUE">
+				<constraints nullable="false" />
+			</column>
+			<column name="NOM" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="COGNOMS" type="VARCHAR(255)">
+				<constraints nullable="false" />
+			</column>
+			<column name="SEXE" type="VARCHAR(1)">
+				<constraints nullable="false" />
+			</column>				
+			<column name="NICK" type="VARCHAR(32)">
+				<constraints nullable="false" unique="true" />
+			</column>
+			<column name="RESPONSABLE" type="VARCHAR(32)">
+				<constraints nullable="false" />
+			</column>			
+			<column name="EMAIL" type="VARCHAR(100)">
+				<constraints nullable="true" />
+			</column>
+			<column name="DNI" type="VARCHAR(32)">
+				<constraints nullable="true" />
+			</column>		
+			<column name="DATA_NAIXEMENT" type="DATE">
+				<constraints nullable="true" />
+			</column>
+			<column name="DATA_ALTA" type="DATE">
+				<constraints nullable="true" />
+			</column>
+			<column name="DATA_BAIXA" type="DATE">
+				<constraints nullable="true" />
+			</column>			
+			<column name="OBSERVACIONS" type="VARCHAR(1024)">
+				<constraints nullable="true" />
+			</column>		
+		</createTable>
+		
+		<addForeignKeyConstraint baseColumnNames="RESPONSABLE"
+			baseTableName="BO_ASSOCIAT_INFANTIL" constraintName="FK_RESPONSABLE_INFANTIL"
+			deferrable="false" initiallyDeferred="false" onDelete="CASCADE"
+			onUpdate="RESTRICT" referencedColumnNames="NICK"
+			referencedTableName="BO_ASSOCIAT" />							
 	</changeSet>
 	
 </databaseChangeLog> 
