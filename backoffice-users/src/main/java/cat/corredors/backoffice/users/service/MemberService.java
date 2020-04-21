@@ -443,11 +443,11 @@ public class MemberService {
 		}
 	}
 
-	public boolean isResponsableChildOk(String nick) throws BackOfficeUserNotFoundException {
+	public boolean isResponsableChildOk(String nick) throws MemberNotRegisteredException {
 		try {
 
 			if (this.repository.findByNickIgnoreCase(nick).isEmpty()) {
-				throw new BackOfficeUserNotFoundException(nick);
+				throw new MemberNotRegisteredException(nick);
 			}
 			
 			return true;

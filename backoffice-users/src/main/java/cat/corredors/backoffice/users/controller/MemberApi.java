@@ -77,7 +77,7 @@ public interface MemberApi {
 			produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ResponseData<Boolean>> isResponsableChildOk(
     		@NotNull String nick)
-    		throws BackOfficeUserNotFoundException;
+    		throws MemberNotRegisteredException;
 	
 	@PutMapping(
 			value = "/child/{memberId}", 

@@ -100,7 +100,7 @@ public class MemberRestController implements MemberApi {
 	@Override
 	@PreAuthorize("hasAnyAuthority('" + ADMIN + "','" + SECRETARIA + "','" + JUNTA + "','" + ORGANITZADORA + "') ")
 	public ResponseEntity<ResponseData<Boolean>> isResponsableChildOk(@RequestParam String nick)
-			throws BackOfficeUserNotFoundException {
+			throws MemberNotRegisteredException {
 		return ResponseEntity.ok(new ResponseData<Boolean>(INF_001, service.isResponsableChildOk(nick)));
 	}
 	
